@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
+import 'base_screen.dart';
 import 'game_screen.dart';
 import 'quests_screen.dart';
 import 'shop_screen.dart';
@@ -13,6 +14,7 @@ class MainShell extends ConsumerWidget {
 
   static const _screens = [
     GameScreen(),
+    BaseScreen(),
     QuestsScreen(),
     ShopScreen(),
     ProfileScreen(),
@@ -39,6 +41,14 @@ class _BottomNav extends StatelessWidget {
 
   const _BottomNav({required this.currentIndex, required this.onTap});
 
+  static const _items = [
+    (Icons.hardware_rounded, AppColors.primary),
+    (Icons.factory_rounded, AppColors.iron),
+    (Icons.assignment_rounded, AppColors.success),
+    (Icons.storefront_rounded, AppColors.diamond),
+    (Icons.person_rounded, AppColors.primary),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -49,7 +59,7 @@ class _BottomNav extends StatelessWidget {
           colors: [Color(0xFF0F1722), Color(0xFF080B14)],
         ),
         border: Border(
-          top: BorderSide(color: AppColors.cellBorder.withOpacity(0.5)),
+          top: BorderSide(color: AppColors.cellBorder.withOpacity(0.4)),
         ),
         boxShadow: [
           BoxShadow(
@@ -62,35 +72,19 @@ class _BottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
-            children: [
-              _NavItem(
-                icon: Icons.hardware_rounded,
-                label: 'Шахта',
-                selected: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavItem(
-                icon: Icons.assignment_rounded,
-                label: 'Задания',
-                selected: currentIndex == 1,
-                onTap: () => onTap(1),
-                accent: AppColors.success,
-              ),
-              _NavItem(
-                icon: Icons.storefront_rounded,
-                label: 'Магазин',
-                selected: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: Icons.person_rounded,
-                label: 'Профиль',
-                selected: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-            ],
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(_items.length, (i) {
+              final (icon, accent) = _items[i];
+              final selected = currentIndex == i;
+              return _NavIcon(
+                icon: icon,
+                selected: selected,
+                accent: accent,
+                onTap: () => onTap(i),
+              );
+            }),
           ),
         ),
       ),
@@ -98,62 +92,54 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavIcon extends StatelessWidget {
   final IconData icon;
-  final String label;
   final bool selected;
+  final Color accent;
   final VoidCallback onTap;
-  final Color? accent;
 
-  const _NavItem({
+  const _NavIcon({
     required this.icon,
-    required this.label,
     required this.selected,
+    required this.accent,
     required this.onTap,
-    this.accent,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? (accent ?? AppColors.primary) : AppColors.textSecondary;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                gradient: selected
-                    ? LinearGradient(colors: [
-                        color.withOpacity(0.25),
-                        color.withOpacity(0.08),
-                      ])
-                    : null,
-                borderRadius: BorderRadius.circular(14),
-                border: selected
-                    ? Border.all(color: color.withOpacity(0.4))
-                    : null,
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 10,
-                fontWeight:
-                    selected ? FontWeight.w700 : FontWeight.w400,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        width: 52,
+        height: 44,
+        decoration: selected
+            ? BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    accent.withOpacity(0.28),
+                    accent.withOpacity(0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: accent.withOpacity(0.45), width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withOpacity(0.2),
+                    blurRadius: 10,
+                    spreadRadius: 0,
+                  ),
+                ],
+              )
+            : null,
+        child: Icon(
+          icon,
+          color: selected ? accent : AppColors.textSecondary.withOpacity(0.6),
+          size: selected ? 24 : 22,
         ),
       ),
     );
