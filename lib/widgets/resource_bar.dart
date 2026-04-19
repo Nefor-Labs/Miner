@@ -14,33 +14,31 @@ class ResourceBar extends ConsumerWidget {
     final player = ref.watch(playerProvider);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF111219), Color(0xFF0D0E16)],
+          colors: [Color(0xFF141E30), Color(0xFF0F1722)],
         ),
         border: Border(
           bottom: BorderSide(
-            color: AppColors.cellBorder.withOpacity(0.6),
-            width: 0.5,
+            color: AppColors.cellBorder.withOpacity(0.5),
           ),
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _ResourceChip(type: ResourceType.diamond, count: player.diamonds),
-          const Gap(4),
+          _Chip(type: ResourceType.diamond, count: player.diamonds),
           _divider(),
-          const Gap(4),
-          _ResourceChip(type: ResourceType.iron, count: player.iron),
-          const Gap(4),
+          _Chip(type: ResourceType.iron, count: player.iron),
           _divider(),
-          const Gap(4),
-          _ResourceChip(type: ResourceType.coal, count: player.coal),
-          const Spacer(),
-          if (player.shieldCharges > 0) _ShieldBadge(count: player.shieldCharges),
+          _Chip(type: ResourceType.coal, count: player.coal),
+          if (player.shieldCharges > 0) ...[
+            _divider(),
+            _ShieldChip(count: player.shieldCharges),
+          ],
         ],
       ),
     );
@@ -48,92 +46,80 @@ class ResourceBar extends ConsumerWidget {
 
   Widget _divider() => Container(
         width: 1,
-        height: 18,
-        color: AppColors.cellBorder.withOpacity(0.5),
+        height: 24,
+        color: AppColors.cellBorder.withOpacity(0.4),
       );
 }
 
-class _ResourceChip extends StatelessWidget {
+class _Chip extends StatelessWidget {
   final ResourceType type;
   final int count;
-  const _ResourceChip({required this.type, required this.count});
 
-  Color get _color => switch (type) {
-        ResourceType.diamond => AppColors.diamond,
-        ResourceType.iron => AppColors.iron,
-        ResourceType.coal => AppColors.coal,
-        _ => AppColors.mine,
-      };
+  const _Chip({required this.type, required this.count});
+
+  Color get _color {
+    switch (type) {
+      case ResourceType.diamond: return AppColors.diamond;
+      case ResourceType.iron: return AppColors.iron;
+      case ResourceType.coal: return AppColors.coal;
+      default: return AppColors.mine;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ResourceIcon(type: type, size: 18),
-          const Gap(5),
-          Text(
-            _formatCount(count),
-            style: TextStyle(
-              color: _color,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.3,
-            ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ResourceIcon(type: type, size: 20),
+        const Gap(6),
+        Text(
+          '$count',
+          style: TextStyle(
+            color: _color,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
           ),
-        ],
-      ),
+        ),
+      ],
     );
-  }
-
-  String _formatCount(int n) {
-    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
-    if (n >= 10000) return '${(n / 1000).toStringAsFixed(0)}K';
-    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
-    return '$n';
   }
 }
 
-class _ShieldBadge extends StatelessWidget {
+class _ShieldChip extends StatelessWidget {
   final int count;
-  const _ShieldBadge({required this.count});
+  const _ShieldChip({required this.count});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.success.withOpacity(0.35)),
-        boxShadow: [
-          BoxShadow(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
             color: AppColors.success.withOpacity(0.15),
-            blurRadius: 8,
+            borderRadius: BorderRadius.circular(6),
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.shield_rounded, color: AppColors.success, size: 15),
-          const Gap(4),
-          Text(
-            '$count',
-            style: const TextStyle(
-              color: AppColors.success,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-            ),
+          child: const Icon(Icons.shield_rounded,
+              color: AppColors.success, size: 16),
+        ),
+        const Gap(5),
+        Text(
+          '$count',
+          style: const TextStyle(
+            color: AppColors.success,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
+// reusable badge used in shop
 class ResourceBadge extends StatelessWidget {
   final ResourceType type;
   final int count;
@@ -146,21 +132,23 @@ class ResourceBadge extends StatelessWidget {
     this.iconSize = 20,
   });
 
-  Color get _color => switch (type) {
-        ResourceType.diamond => AppColors.diamond,
-        ResourceType.iron => AppColors.iron,
-        ResourceType.coal => AppColors.coal,
-        _ => AppColors.mine,
-      };
+  Color get _color {
+    switch (type) {
+      case ResourceType.diamond: return AppColors.diamond;
+      case ResourceType.iron: return AppColors.iron;
+      case ResourceType.coal: return AppColors.coal;
+      default: return AppColors.mine;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _color.withOpacity(0.28)),
+        color: _color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: _color.withOpacity(0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
