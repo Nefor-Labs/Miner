@@ -63,6 +63,16 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Setup release keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/miner.keystore
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=miner.keystore
+          EOF
+
       - name: Generate launcher icons
         run: dart run flutter_launcher_icons
 
