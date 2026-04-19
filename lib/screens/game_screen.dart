@@ -17,72 +17,123 @@ class GameScreen extends ConsumerWidget {
     final player = ref.watch(playerProvider);
     final notifier = ref.read(gameProvider.notifier);
 
-    return Scaffold(
-      body: SafeArea(
+    return Container(
+      decoration: const BoxDecoration(gradient: AppColors.bgGradient),
+      child: SafeArea(
         child: Column(
           children: [
             const ResourceBar(),
-            const Gap(8),
-            _StatusBanner(game: game),
-            const Gap(8),
+            const Gap(12),
+            if (game.message != null) ...[
+              _StatusBanner(game: game),
+              const Gap(10),
+            ],
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.hardware_rounded,
-                          color: AppColors.iron, size: 16),
-                      const Gap(4),
-                      Text(
-                        'Кирка Ур.${player.pickaxeLevel}',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
+                  _InfoPill(
+                    icon: Icons.hardware_rounded,
+                    label: 'Кирка Ур.${player.pickaxeLevel}',
+                    color: AppColors.iron,
                   ),
-                  Text(
-                    'За раунд: +${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                  _InfoPill(
+                    icon: Icons.trending_up_rounded,
+                    label:
+                        '+${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal} очков',
+                    color: AppColors.primary,
                   ),
                 ],
               ),
             ),
-            const Gap(8),
+            const Gap(12),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: AspectRatio(
                   aspectRatio: 1,
-                  child: GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 5,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF1A2540), Color(0xFF0F1825)],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.cellBorder.withOpacity(0.6),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                    itemCount: 25,
-                    itemBuilder: (context, i) {
-                      return CellWidget(
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
+                      ),
+                      itemCount: 25,
+                      itemBuilder: (context, i) => CellWidget(
                         cell: game.cells[i],
                         onTap: game.isActive
                             ? () => notifier.revealCell(i)
                             : null,
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            const Gap(12),
-            _ActionButtons(game: game, notifier: notifier),
             const Gap(16),
+            _ActionButtons(game: game, notifier: notifier),
+            const Gap(20),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _InfoPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _InfoPill(
+      {required this.icon, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const Gap(5),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -94,40 +145,55 @@ class _StatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final msg = game.message ?? '';
-    if (msg.isEmpty) return const SizedBox.shrink();
-
-    Color bannerColor;
+    Color color;
+    IconData icon;
     if (game.status == GameStatus.lost) {
-      bannerColor = AppColors.mine;
+      color = AppColors.mine;
+      icon = Icons.local_fire_department_rounded;
     } else if (game.status == GameStatus.won) {
-      bannerColor = AppColors.success;
+      color = AppColors.success;
+      icon = Icons.emoji_events_rounded;
     } else {
-      bannerColor = AppColors.diamond;
+      color = AppColors.diamond;
+      icon = Icons.shield_rounded;
     }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: bannerColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: bannerColor.withOpacity(0.4)),
-      ),
-      child: Center(
-        child: Text(
-          msg,
-          style: TextStyle(
-            color: bannerColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
         ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.45)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.2),
+            blurRadius: 12,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const Gap(8),
+          Text(
+            game.message!,
+            style: TextStyle(
+              color: color,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     )
         .animate()
         .fadeIn(duration: 300.ms)
-        .slideY(begin: -0.3, end: 0, duration: 300.ms);
+        .slideY(begin: -0.4, end: 0, duration: 300.ms, curve: Curves.easeOut);
   }
 }
 
@@ -140,13 +206,20 @@ class _ActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     if (game.status == GameStatus.idle) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SizedBox(
           width: double.infinity,
-          child: ElevatedButton.icon(
+          child: GradientButton(
             onPressed: notifier.startNewGame,
-            icon: const Icon(Icons.hardware_rounded, size: 18),
-            label: const Text('НАЧАТЬ ДОБЫЧУ'),
+            gradient: AppColors.primaryGradient,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.hardware_rounded, size: 18),
+                Gap(8),
+                Text('НАЧАТЬ ДОБЫЧУ'),
+              ],
+            ),
           ),
         ),
       );
@@ -156,22 +229,19 @@ class _ActionButtons extends StatelessWidget {
       final hasResources =
           game.roundDiamonds + game.roundIron + game.roundCoal > 0;
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SizedBox(
           width: double.infinity,
-          child: OutlinedButton.icon(
+          child: GradientButton(
             onPressed: hasResources ? notifier.cashOut : null,
-            icon: const Icon(Icons.savings_rounded, size: 18),
-            label: const Text('ЗАБРАТЬ РЕСУРСЫ'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.success,
-              side: const BorderSide(color: AppColors.success),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              textStyle: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w700),
+            gradient: AppColors.successGradient,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.savings_rounded, size: 18),
+                Gap(8),
+                Text('ЗАБРАТЬ РЕСУРСЫ'),
+              ],
             ),
           ),
         ),
@@ -179,13 +249,20 @@ class _ActionButtons extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SizedBox(
         width: double.infinity,
-        child: ElevatedButton.icon(
+        child: GradientButton(
           onPressed: notifier.startNewGame,
-          icon: const Icon(Icons.refresh_rounded, size: 16),
-          label: const Text('НОВЫЙ РАУНД'),
+          gradient: AppColors.primaryGradient,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.refresh_rounded, size: 18),
+              Gap(8),
+              Text('НОВЫЙ РАУНД'),
+            ],
+          ),
         ),
       ),
     );
