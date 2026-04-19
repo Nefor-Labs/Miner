@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import '../models/resource_type.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
+import 'resource_icon.dart';
 
 class ResourceBar extends ConsumerWidget {
   const ResourceBar({super.key});
@@ -22,50 +24,39 @@ class ResourceBar extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _ResourceChip(emoji: '💎', count: player.diamonds, color: AppColors.diamond),
-          _ResourceChip(emoji: '🪨', count: player.iron, color: AppColors.iron),
-          _ResourceChip(emoji: '⬛', count: player.coal, color: AppColors.coal),
+          ResourceBadge(type: ResourceType.diamond, count: player.diamonds),
+          ResourceBadge(type: ResourceType.iron, count: player.iron),
+          ResourceBadge(type: ResourceType.coal, count: player.coal),
           if (player.shieldCharges > 0)
-            _ResourceChip(
-              emoji: '🛡',
-              count: player.shieldCharges,
-              color: AppColors.success,
-            ),
+            _ShieldBadge(count: player.shieldCharges),
         ],
       ),
     );
   }
 }
 
-class _ResourceChip extends StatelessWidget {
-  final String emoji;
+class _ShieldBadge extends StatelessWidget {
   final int count;
-  final Color color;
-
-  const _ResourceChip({
-    required this.emoji,
-    required this.count,
-    required this.color,
-  });
+  const _ShieldBadge({required this.count});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: AppColors.success.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: AppColors.success.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 14)),
+          const Icon(Icons.shield_rounded, color: AppColors.success, size: 18),
           const Gap(4),
           Text(
             '$count',
-            style: TextStyle(
-              color: color,
+            style: const TextStyle(
+              color: AppColors.success,
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),

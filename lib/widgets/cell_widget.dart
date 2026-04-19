@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../models/cell.dart';
 import '../models/resource_type.dart';
 import '../theme/app_theme.dart';
+import 'resource_icon.dart';
 
 class CellWidget extends StatelessWidget {
   final Cell cell;
@@ -64,10 +65,7 @@ class CellWidget extends StatelessWidget {
         ),
         child: Center(
           child: cell.isRevealed
-              ? Text(
-                  cell.type.emoji,
-                  style: const TextStyle(fontSize: 26),
-                )
+              ? ResourceIcon(type: cell.type, size: 28)
                   .animate()
                   .scale(
                     begin: const Offset(0.3, 0.3),

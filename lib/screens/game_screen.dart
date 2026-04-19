@@ -30,12 +30,19 @@ class GameScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '⛏ Lvl ${player.pickaxeLevel}',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  Row(
+                    children: [
+                      const Icon(Icons.hardware_rounded,
+                          color: AppColors.iron, size: 16),
+                      const Gap(4),
+                      Text(
+                        'Кирка Ур.${player.pickaxeLevel}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                   ),
                   Text(
-                    'Round: +${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal}',
+                    'За раунд: +${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
@@ -83,15 +90,10 @@ class GameScreen extends ConsumerWidget {
 
 class _StatusBanner extends StatelessWidget {
   final GameState game;
-
   const _StatusBanner({required this.game});
 
   @override
   Widget build(BuildContext context) {
-    if (game.message == null && game.status == GameStatus.idle) {
-      return const SizedBox.shrink();
-    }
-
     final msg = game.message ?? '';
     if (msg.isEmpty) return const SizedBox.shrink();
 
@@ -132,7 +134,6 @@ class _StatusBanner extends StatelessWidget {
 class _ActionButtons extends StatelessWidget {
   final GameState game;
   final GameNotifier notifier;
-
   const _ActionButtons({required this.game, required this.notifier});
 
   @override
@@ -144,50 +145,47 @@ class _ActionButtons extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: notifier.startNewGame,
-            icon: const Text('⛏', style: TextStyle(fontSize: 18)),
-            label: const Text('START MINING'),
+            icon: const Icon(Icons.hardware_rounded, size: 18),
+            label: const Text('НАЧАТЬ ДОБЫЧУ'),
           ),
         ),
       );
     }
 
     if (game.status == GameStatus.playing) {
-      final hasResources = game.roundDiamonds + game.roundIron + game.roundCoal > 0;
+      final hasResources =
+          game.roundDiamonds + game.roundIron + game.roundCoal > 0;
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: hasResources ? notifier.cashOut : null,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.success,
-                  side: const BorderSide(color: AppColors.success),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  '💰 CASH OUT',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
+        child: SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: hasResources ? notifier.cashOut : null,
+            icon: const Icon(Icons.savings_rounded, size: 18),
+            label: const Text('ЗАБРАТЬ РЕСУРСЫ'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.success,
+              side: const BorderSide(color: AppColors.success),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
+              textStyle: const TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w700),
             ),
-          ],
+          ),
         ),
       );
     }
 
-    // Won or Lost
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
           onPressed: notifier.startNewGame,
-          icon: const Text('🔄', style: TextStyle(fontSize: 16)),
-          label: const Text('NEW ROUND'),
+          icon: const Icon(Icons.refresh_rounded, size: 16),
+          label: const Text('НОВЫЙ РАУНД'),
         ),
       ),
     );

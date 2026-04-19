@@ -59,8 +59,6 @@ class GameNotifier extends Notifier<GameState> {
   GameState build() => GameState(cells: _generateCells(1));
 
   List<Cell> _generateCells(int pickaxeLevel) {
-    // Base weights: coal=40, iron=30, diamond=10, mine=20
-    // Each pickaxe level shifts 5% from coal to diamond
     final int extraDiamond = (pickaxeLevel - 1) * 5;
     final int diamondWeight = 10 + extraDiamond;
     final int coalWeight = max(10, 40 - extraDiamond);
@@ -84,15 +82,11 @@ class GameNotifier extends Notifier<GameState> {
       picked.add(pool[_rng.nextInt(pool.length)]);
     }
 
-    return List.generate(
-      gridSize,
-      (i) => Cell(index: i, type: picked[i]),
-    );
+    return List.generate(gridSize, (i) => Cell(index: i, type: picked[i]));
   }
 
   void startNewGame() {
-    final pickaxeLevel =
-        ref.read(playerProvider).pickaxeLevel;
+    final pickaxeLevel = ref.read(playerProvider).pickaxeLevel;
     state = GameState(
       cells: _generateCells(pickaxeLevel),
       status: GameStatus.playing,
@@ -109,25 +103,22 @@ class GameNotifier extends Notifier<GameState> {
 
     if (cell.type == ResourceType.mine) {
       final player = ref.read(playerProvider);
-      // Try to use shield
       if (player.shieldCharges > 0 && !state.shieldUsedThisRound) {
         ref.read(playerProvider.notifier).useShieldCharge();
         state = state.copyWith(
           cells: updatedCells,
           shieldUsedThisRound: true,
-          message: '🛡 Shield activated! Mine defused!',
+          message: 'Щит активирован! Мина обезврежена!',
         );
         return;
       }
-      // Game lost — reveal all cells
-      final revealedAll = updatedCells
-          .map((c) => c.copyWith(isRevealed: true))
-          .toList();
+      final revealedAll =
+          updatedCells.map((c) => c.copyWith(isRevealed: true)).toList();
       ref.read(playerProvider.notifier).recordGame(roundScore: 0);
       state = state.copyWith(
         cells: revealedAll,
         status: GameStatus.lost,
-        message: '💥 BOOM! You hit a mine!',
+        message: 'БУМ! Вы подорвались на мине!',
       );
       return;
     }
@@ -150,29 +141,24 @@ class GameNotifier extends Notifier<GameState> {
         break;
     }
 
-    // Check if all non-mine cells revealed
-    final nonMines =
-        updatedCells.where((c) => c.type != ResourceType.mine);
+    final nonMines = updatedCells.where((c) => c.type != ResourceType.mine);
     final allRevealed = nonMines.every((c) => c.isRevealed);
 
     if (allRevealed) {
-      ref.read(playerProvider.notifier).addResources(
-            diamonds: d,
-            iron: ir,
-            coal: co,
-          );
+      ref
+          .read(playerProvider.notifier)
+          .addResources(diamonds: d, iron: ir, coal: co);
       final score = d * 10 + ir * 3 + co * 1;
       ref.read(playerProvider.notifier).recordGame(roundScore: score);
-      final revealedAll = updatedCells
-          .map((c) => c.copyWith(isRevealed: true))
-          .toList();
+      final revealedAll =
+          updatedCells.map((c) => c.copyWith(isRevealed: true)).toList();
       state = state.copyWith(
         cells: revealedAll,
         status: GameStatus.won,
         roundDiamonds: d,
         roundIron: ir,
         roundCoal: co,
-        message: '🏆 Field cleared! Awesome!',
+        message: 'Поле очищено! Отличная работа!',
       );
       return;
     }
@@ -191,14 +177,11 @@ class GameNotifier extends Notifier<GameState> {
     final d = state.roundDiamonds;
     final ir = state.roundIron;
     final co = state.roundCoal;
-
     if (d + ir + co == 0) return;
 
-    ref.read(playerProvider.notifier).addResources(
-          diamonds: d,
-          iron: ir,
-          coal: co,
-        );
+    ref
+        .read(playerProvider.notifier)
+        .addResources(diamonds: d, iron: ir, coal: co);
     final score = d * 10 + ir * 3 + co * 1;
     ref.read(playerProvider.notifier).recordGame(roundScore: score);
 
@@ -207,11 +190,10 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(
       cells: revealedAll,
       status: GameStatus.won,
-      message: '💰 Cashed out!',
+      message: 'Ресурсы собраны!',
     );
   }
 }
 
-final gameProvider = NotifierProvider<GameNotifier, GameState>(
-  GameNotifier.new,
-);
+final gameProvider =
+    NotifierProvider<GameNotifier, GameState>(GameNotifier.new);
