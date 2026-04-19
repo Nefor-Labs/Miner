@@ -1,0 +1,3 @@
+-keep class io.flutter.** { *; }
+-keep class com.nefor.miner.** { *; }
+-dontwarn io.flutter.**
