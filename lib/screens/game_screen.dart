@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,29 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   bool _showExplosion = false;
+  int _cooldown = 0; // seconds remaining
+  Timer? _cooldownTimer;
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    setState(() => _cooldown = 3);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) {
+        t.cancel();
+        return;
+      }
+      setState(() {
+        _cooldown--;
+        if (_cooldown <= 0) t.cancel();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,11 +49,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final player = ref.watch(playerProvider);
     final notifier = ref.read(gameProvider.notifier);
 
-    // Trigger explosion when game is lost
     ref.listen(gameProvider, (prev, next) {
-      if (prev?.status != GameStatus.lost &&
-          next.status == GameStatus.lost) {
+      if (prev?.status != GameStatus.lost && next.status == GameStatus.lost) {
         setState(() => _showExplosion = true);
+        _startCooldown();
+      }
+      if (prev?.status != GameStatus.won && next.status == GameStatus.won) {
+        _startCooldown();
       }
     });
 
@@ -112,14 +138,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   ),
                 ),
                 const Gap(16),
-                _ActionButtons(game: game, notifier: notifier),
+                _ActionButtons(
+                  game: game,
+                  notifier: notifier,
+                  cooldown: _cooldown,
+                ),
                 const Gap(20),
               ],
             ),
           ),
         ),
 
-        // Explosion overlay
+        // Взрыв
         if (_showExplosion)
           Positioned.fill(
             child: ExplosionOverlay(
@@ -153,14 +183,9 @@ class _InfoPill extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 14),
           const Gap(5),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(label,
+              style: TextStyle(
+                  color: color, fontSize: 12, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -196,8 +221,7 @@ class _StatusBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.45)),
         boxShadow: [
-          BoxShadow(
-              color: color.withOpacity(0.2), blurRadius: 12, spreadRadius: 0),
+          BoxShadow(color: color.withOpacity(0.2), blurRadius: 12),
         ],
       ),
       child: Row(
@@ -205,11 +229,9 @@ class _StatusBanner extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 18),
           const Gap(8),
-          Text(
-            game.message!,
-            style: TextStyle(
-                color: color, fontSize: 15, fontWeight: FontWeight.w700),
-          ),
+          Text(game.message!,
+              style: TextStyle(
+                  color: color, fontSize: 15, fontWeight: FontWeight.w700)),
         ],
       ),
     )
@@ -222,70 +244,116 @@ class _StatusBanner extends StatelessWidget {
 class _ActionButtons extends StatelessWidget {
   final GameState game;
   final GameNotifier notifier;
-  const _ActionButtons({required this.game, required this.notifier});
+  final int cooldown;
+
+  const _ActionButtons({
+    required this.game,
+    required this.notifier,
+    required this.cooldown,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Idle — просто кнопка старта
     if (game.status == GameStatus.idle) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: SizedBox(
-          width: double.infinity,
-          child: GradientButton(
-            onPressed: notifier.startNewGame,
-            gradient: AppColors.primaryGradient,
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.hardware_rounded, size: 18),
-                Gap(8),
-                Text('НАЧАТЬ ДОБЫЧУ'),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (game.status == GameStatus.playing) {
-      final hasResources =
-          game.roundDiamonds + game.roundIron + game.roundCoal > 0;
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: SizedBox(
-          width: double.infinity,
-          child: GradientButton(
-            onPressed: hasResources ? notifier.cashOut : null,
-            gradient: AppColors.successGradient,
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.savings_rounded, size: 18),
-                Gap(8),
-                Text('ЗАБРАТЬ РЕСУРСЫ'),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: SizedBox(
-        width: double.infinity,
-        child: GradientButton(
+      return _buildWide(
+        GradientButton(
           onPressed: notifier.startNewGame,
           gradient: AppColors.primaryGradient,
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.refresh_rounded, size: 18),
+              Icon(Icons.hardware_rounded, size: 18),
               Gap(8),
-              Text('НОВЫЙ РАУНД'),
+              Text('НАЧАТЬ ДОБЫЧУ'),
             ],
           ),
         ),
+      );
+    }
+
+    // Playing — кнопка кэшаута
+    if (game.status == GameStatus.playing) {
+      final hasResources =
+          game.roundDiamonds + game.roundIron + game.roundCoal > 0;
+      return _buildWide(
+        GradientButton(
+          onPressed: hasResources ? notifier.cashOut : null,
+          gradient: AppColors.successGradient,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.savings_rounded, size: 18),
+              Gap(8),
+              Text('ЗАБРАТЬ РЕСУРСЫ'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Won / Lost — кнопка нового раунда с кулдауном
+    final ready = cooldown <= 0;
+    return _buildWide(
+      GradientButton(
+        onPressed: ready ? notifier.startNewGame : null,
+        gradient: AppColors.primaryGradient,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (!ready) ...[
+              _CooldownRing(seconds: cooldown),
+              const Gap(10),
+              Text(
+                'Подождите $cooldown сек...',
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              ),
+            ] else ...[
+              const Icon(Icons.refresh_rounded, size: 18),
+              const Gap(8),
+              const Text('НОВЫЙ РАУНД'),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWide(Widget child) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SizedBox(width: double.infinity, child: child),
+      );
+}
+
+class _CooldownRing extends StatelessWidget {
+  final int seconds;
+  const _CooldownRing({required this.seconds});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 22,
+      height: 22,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CircularProgressIndicator(
+            value: seconds / 3,
+            strokeWidth: 2.5,
+            backgroundColor: Colors.white24,
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+          Center(
+            child: Text(
+              '$seconds',
+              style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
