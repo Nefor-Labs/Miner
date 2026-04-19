@@ -11,8 +11,7 @@ class CellWidget extends StatelessWidget {
 
   const CellWidget({super.key, required this.cell, this.onTap});
 
-  Color _getBorderColor() {
-    if (!cell.isRevealed) return AppColors.cellBorder;
+  Color _glowColor() {
     switch (cell.type) {
       case ResourceType.diamond:
         return AppColors.diamond;
@@ -25,59 +24,72 @@ class CellWidget extends StatelessWidget {
     }
   }
 
-  Color _getBackgroundColor() {
-    if (!cell.isRevealed) return AppColors.cellUnrevealed;
-    switch (cell.type) {
-      case ResourceType.diamond:
-        return AppColors.diamond.withOpacity(0.15);
-      case ResourceType.iron:
-        return AppColors.iron.withOpacity(0.1);
-      case ResourceType.coal:
-        return AppColors.coal.withOpacity(0.2);
-      case ResourceType.mine:
-        return AppColors.mine.withOpacity(0.2);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final revealed = cell.isRevealed;
+    final glow = _glowColor();
+
     return GestureDetector(
-      onTap: cell.isRevealed ? null : onTap,
+      onTap: revealed ? null : onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 350),
         curve: Curves.easeOutBack,
         decoration: BoxDecoration(
-          color: _getBackgroundColor(),
-          borderRadius: BorderRadius.circular(10),
+          gradient: revealed
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    glow.withOpacity(0.18),
+                    glow.withOpacity(0.06),
+                  ],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1E2E50),
+                    Color(0xFF141E35),
+                  ],
+                ),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _getBorderColor(),
-            width: cell.isRevealed ? 1.5 : 1,
+            color: revealed
+                ? glow.withOpacity(0.55)
+                : AppColors.cellBorder,
+            width: revealed ? 1.5 : 1,
           ),
-          boxShadow: cell.isRevealed && cell.type == ResourceType.diamond
+          boxShadow: revealed
               ? [
                   BoxShadow(
-                    color: AppColors.diamond.withOpacity(0.3),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  )
+                    color: glow.withOpacity(0.25),
+                    blurRadius: 10,
+                    spreadRadius: 0,
+                  ),
                 ]
-              : null,
+              : [
+                  const BoxShadow(
+                    color: Color(0x33000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
         ),
         child: Center(
-          child: cell.isRevealed
-              ? ResourceIcon(type: cell.type, size: 28)
+          child: revealed
+              ? ResourceIcon(type: cell.type, size: 26)
                   .animate()
                   .scale(
-                    begin: const Offset(0.3, 0.3),
-                    end: const Offset(1, 1),
-                    duration: 300.ms,
+                    begin: const Offset(0.2, 0.2),
+                    end: const Offset(1.0, 1.0),
+                    duration: 350.ms,
                     curve: Curves.elasticOut,
                   )
                   .fadeIn(duration: 200.ms)
-              : const Icon(
+              : Icon(
                   Icons.question_mark_rounded,
-                  color: AppColors.cellBorder,
-                  size: 20,
+                  color: AppColors.cellBorder.withOpacity(0.6),
+                  size: 18,
                 ),
         ),
       ),
