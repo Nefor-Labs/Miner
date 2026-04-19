@@ -14,23 +14,26 @@ class ShopScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    final navHeight = 66 + 20 + bottomPad;
+
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ResourceBar(),
-            const Gap(20),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('МАГАЗИН',
                       style: Theme.of(context).textTheme.displayLarge),
                   const Gap(2),
-                  Text('Прокачай своё снаряжение',
+                  Text('Прокачай снаряжение',
                       style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
@@ -38,14 +41,19 @@ class ShopScreen extends ConsumerWidget {
             const Gap(16),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                padding: EdgeInsets.fromLTRB(20, 4, 20, navHeight + 8),
                 itemCount: shopUpgrades.length,
-                separatorBuilder: (_, __) => const Gap(14),
+                separatorBuilder: (_, __) => const Gap(12),
                 itemBuilder: (context, i) {
                   return _UpgradeCard(upgrade: shopUpgrades[i])
                       .animate(delay: (i * 80).ms)
                       .fadeIn()
-                      .slideX(begin: 0.15, end: 0, curve: Curves.easeOutCubic);
+                      .slideX(
+                        begin: 0.12,
+                        end: 0,
+                        curve: Curves.easeOutCubic,
+                        duration: 350.ms,
+                      );
                 },
               ),
             ),
@@ -104,7 +112,8 @@ class _UpgradeCard extends ConsumerWidget {
       }
     }
 
-    final (IconData icon, Color color, String status) = switch (upgrade.type) {
+    final (IconData icon, Color color, String status) =
+        switch (upgrade.type) {
       UpgradeType.pickaxe => (
           Icons.hardware_rounded,
           AppColors.iron,
@@ -117,50 +126,37 @@ class _UpgradeCard extends ConsumerWidget {
         ),
       UpgradeType.multiplier => (
           Icons.bolt_rounded,
-          AppColors.primary,
+          AppColors.gold,
           maxed ? 'МАКС' : '×${player.bonusMultiplier}',
         ),
     };
 
     return Container(
-      decoration: AppDecorations.glassCard(
-        borderColor: canAfford
-            ? color.withOpacity(0.45)
-            : AppColors.cellBorder,
-        borderWidth: canAfford ? 1.5 : 1,
-        shadows: canAfford
-            ? [
-                BoxShadow(
-                  color: color.withOpacity(0.12),
-                  blurRadius: 16,
-                  spreadRadius: 0,
-                )
-              ]
-            : null,
-      ),
+      decoration: canAfford
+          ? AppDecorations.mineralCard(color, radius: 22)
+          : AppDecorations.glassCard(radius: 22),
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
           children: [
             Row(
               children: [
-                // Icon container
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        color.withOpacity(0.2),
-                        color.withOpacity(0.05),
+                        color.withOpacity(0.22),
+                        color.withOpacity(0.06),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: color.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: color.withOpacity(0.35)),
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(icon, color: color, size: 26),
                 ),
                 const Gap(14),
                 Expanded(
@@ -173,13 +169,16 @@ class _UpgradeCard extends ConsumerWidget {
                       Text(
                         nextLevel?.description ?? 'Максимальный уровень',
                         style: Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
+                const Gap(10),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -210,7 +209,7 @@ class _UpgradeCard extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      AppColors.cellBorder.withOpacity(0.6),
+                      AppColors.cellBorder.withOpacity(0.7),
                       Colors.transparent,
                     ],
                   ),
@@ -219,30 +218,47 @@ class _UpgradeCard extends ConsumerWidget {
               const Gap(14),
               Row(
                 children: [
-                  _CostPill(ResourceType.diamond, nextLevel.costDiamond,
-                      player.diamonds),
-                  const Gap(6),
-                  _CostPill(
-                      ResourceType.iron, nextLevel.costIron, player.iron),
-                  const Gap(6),
-                  _CostPill(
-                      ResourceType.coal, nextLevel.costCoal, player.coal),
+                  if (nextLevel.costDiamond > 0)
+                    _CostChip(
+                      ResourceType.diamond,
+                      nextLevel.costDiamond,
+                      player.diamonds,
+                    ),
+                  if (nextLevel.costIron > 0) ...[
+                    const Gap(6),
+                    _CostChip(
+                      ResourceType.iron,
+                      nextLevel.costIron,
+                      player.iron,
+                    ),
+                  ],
+                  if (nextLevel.costCoal > 0) ...[
+                    const Gap(6),
+                    _CostChip(
+                      ResourceType.coal,
+                      nextLevel.costCoal,
+                      player.coal,
+                    ),
+                  ],
                   const Spacer(),
                   GradientButton(
                     onPressed: canAfford ? purchase : null,
                     gradient: LinearGradient(
-                        colors: [color, color.withOpacity(0.7)]),
-                    radius: 12,
+                      colors: [color, color.withOpacity(0.7)],
+                    ),
+                    shadowColor: color,
+                    radius: 14,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 10),
+                        horizontal: 20, vertical: 12),
                     child: Text(
                       upgrade.type == UpgradeType.shield
                           ? 'КУПИТЬ'
                           : 'УЛУЧШИТЬ',
                       style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
                 ],
@@ -255,28 +271,28 @@ class _UpgradeCard extends ConsumerWidget {
   }
 }
 
-class _CostPill extends StatelessWidget {
+class _CostChip extends StatelessWidget {
   final ResourceType type;
   final int cost;
   final int have;
-  const _CostPill(this.type, this.cost, this.have);
+  const _CostChip(this.type, this.cost, this.have);
 
   @override
   Widget build(BuildContext context) {
     final enough = have >= cost;
+    final color = enough ? AppColors.success : AppColors.mine;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: (enough ? AppColors.success : AppColors.mine).withOpacity(0.08),
+        color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: (enough ? AppColors.success : AppColors.mine).withOpacity(0.25),
-        ),
+        border: Border.all(color: color.withOpacity(0.28)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ResourceIcon(type: type, size: 14),
+          ResourceIcon(type: type, size: 13),
           const Gap(3),
           Text(
             '$cost',

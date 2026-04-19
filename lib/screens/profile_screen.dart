@@ -39,27 +39,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final player = ref.watch(playerProvider);
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    final navHeight = 66 + 20 + bottomPad;
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(20, 0, 20, navHeight + 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Gap(18),
               Text('ПРОФИЛЬ',
-                      style: Theme.of(context).textTheme.displayLarge)
+                  style: Theme.of(context).textTheme.displayLarge)
                   .animate()
                   .fadeIn()
                   .slideY(begin: -0.3),
               Text('Статистика и прогресс',
-                      style: Theme.of(context).textTheme.bodyMedium)
+                  style: Theme.of(context).textTheme.bodyMedium)
                   .animate(delay: 50.ms)
                   .fadeIn(),
-              const Gap(20),
+              const Gap(18),
 
-              // Avatar card
               _AvatarCard(
                 player: player,
                 editing: _editing,
@@ -69,29 +72,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ).animate(delay: 80.ms).fadeIn().slideY(begin: 0.15),
 
               const Gap(20),
-              _label(context, 'РЕСУРСЫ'),
+              _SectionLabel('РЕСУРСЫ'),
               const Gap(10),
               Row(
                 children: [
                   Expanded(
-                    child: _ResCard(ResourceType.diamond, 'Алмазы',
-                        '${player.diamonds}'),
+                    child: _ResourceCard(
+                        ResourceType.diamond, 'Алмазы', '${player.diamonds}'),
                   ),
                   const Gap(10),
                   Expanded(
-                    child:
-                        _ResCard(ResourceType.iron, 'Железо', '${player.iron}'),
+                    child: _ResourceCard(
+                        ResourceType.iron, 'Железо', '${player.iron}'),
                   ),
                   const Gap(10),
                   Expanded(
-                    child:
-                        _ResCard(ResourceType.coal, 'Уголь', '${player.coal}'),
+                    child: _ResourceCard(
+                        ResourceType.coal, 'Уголь', '${player.coal}'),
                   ),
                 ],
-              ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.15),
+              ).animate(delay: 140.ms).fadeIn().slideY(begin: 0.15),
 
               const Gap(20),
-              _label(context, 'СТАТИСТИКА'),
+              _SectionLabel('СТАТИСТИКА'),
               const Gap(10),
               GridView.count(
                 crossAxisCount: 2,
@@ -101,57 +104,90 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 mainAxisSpacing: 10,
                 childAspectRatio: 2.2,
                 children: [
-                  _StatCard(Icons.videogame_asset_rounded, 'Игр сыграно',
-                      '${player.gamesPlayed}', AppColors.primary),
-                  _StatCard(Icons.emoji_events_rounded, 'Лучший счёт',
-                      '${player.bestRoundScore}', AppColors.success),
-                  _StatCard(Icons.bar_chart_rounded, 'Всего очков',
-                      '${player.totalScore}', AppColors.diamond),
-                  _StatCard(Icons.shield_rounded, 'Мин обезврежено',
-                      '${player.minesDefused}', AppColors.iron),
+                  _StatCard(
+                    Icons.videogame_asset_rounded,
+                    'Игр сыграно',
+                    '${player.gamesPlayed}',
+                    AppColors.primary,
+                  ),
+                  _StatCard(
+                    Icons.emoji_events_rounded,
+                    'Лучший счёт',
+                    '${player.bestRoundScore}',
+                    AppColors.gold,
+                  ),
+                  _StatCard(
+                    Icons.bar_chart_rounded,
+                    'Всего очков',
+                    '${player.totalScore}',
+                    AppColors.diamond,
+                  ),
+                  _StatCard(
+                    Icons.shield_rounded,
+                    'Мин обезврежено',
+                    '${player.minesDefused}',
+                    AppColors.success,
+                  ),
                 ],
-              ).animate(delay: 220.ms).fadeIn().slideY(begin: 0.15),
+              ).animate(delay: 210.ms).fadeIn().slideY(begin: 0.15),
 
               const Gap(20),
-              _label(context, 'УЛУЧШЕНИЯ'),
+              _SectionLabel('УЛУЧШЕНИЯ'),
               const Gap(10),
               Row(
                 children: [
                   Expanded(
-                    child: _StatCard(Icons.hardware_rounded, 'Кирка',
-                        'Ур.${player.pickaxeLevel}', AppColors.iron),
+                    child: _StatCard(
+                      Icons.hardware_rounded,
+                      'Кирка',
+                      'Ур.${player.pickaxeLevel}',
+                      AppColors.iron,
+                    ),
                   ),
                   const Gap(10),
                   Expanded(
-                    child: _StatCard(Icons.bolt_rounded, 'Множитель',
-                        '×${player.bonusMultiplier}', AppColors.primary),
+                    child: _StatCard(
+                      Icons.bolt_rounded,
+                      'Множитель',
+                      '×${player.bonusMultiplier}',
+                      AppColors.gold,
+                    ),
                   ),
                   const Gap(10),
                   Expanded(
-                    child: _StatCard(Icons.shield_rounded, 'Щиты',
-                        '${player.shieldCharges}', AppColors.success),
+                    child: _StatCard(
+                      Icons.shield_rounded,
+                      'Щиты',
+                      '${player.shieldCharges}',
+                      AppColors.success,
+                    ),
                   ),
                 ],
-              ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.15),
-
-              const Gap(8),
+              ).animate(delay: 290.ms).fadeIn().slideY(begin: 0.15),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _label(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 2),
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                letterSpacing: 2,
-                color: AppColors.textSecondary.withOpacity(0.7),
-              ),
-        ),
-      );
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: AppColors.textSecondary,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 2.5,
+      ),
+    );
+  }
 }
 
 class _AvatarCard extends StatelessWidget {
@@ -173,12 +209,12 @@ class _AvatarCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AppDecorations.glowCard(AppColors.primary, radius: 22),
+      decoration: AppDecorations.glowCard(AppColors.primary, radius: 24),
       child: Row(
         children: [
           Container(
-            width: 68,
-            height: 68,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -189,18 +225,18 @@ class _AvatarCard extends StatelessWidget {
                   AppColors.accent,
                 ],
               ),
-              border: Border.all(color: AppColors.primary.withOpacity(0.5),
-                  width: 2),
+              border: Border.all(
+                  color: AppColors.primary.withOpacity(0.55), width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.25),
-                  blurRadius: 12,
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 16,
                 ),
               ],
             ),
             child: const Center(
               child: Icon(Icons.hardware_rounded,
-                  color: AppColors.iron, size: 32),
+                  color: AppColors.iron, size: 34),
             ),
           ),
           const Gap(16),
@@ -221,9 +257,13 @@ class _AvatarCard extends StatelessWidget {
                           decoration: const InputDecoration(
                             counterText: '',
                             border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            fillColor: Colors.transparent,
+                            filled: false,
                             hintText: 'Введите ник',
-                            hintStyle:
-                                TextStyle(color: AppColors.textSecondary),
+                            hintStyle: TextStyle(
+                                color: AppColors.textSecondary),
                           ),
                           onSubmitted: (_) => onSave(),
                         ),
@@ -231,7 +271,7 @@ class _AvatarCard extends StatelessWidget {
                       IconButton(
                         onPressed: onSave,
                         icon: const Icon(Icons.check_circle_rounded,
-                            color: AppColors.success, size: 26),
+                            color: AppColors.success, size: 28),
                       ),
                     ],
                   )
@@ -244,24 +284,32 @@ class _AvatarCard extends StatelessWidget {
                             : player.nickname,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 21,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const Gap(3),
+                      const Gap(5),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                            horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary.withOpacity(0.2),
+                              AppColors.primary.withOpacity(0.08),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: AppColors.primary.withOpacity(0.35)),
                         ),
                         child: const Text(
                           'Шахтёр',
                           style: TextStyle(
                             color: AppColors.primary,
                             fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -269,15 +317,17 @@ class _AvatarCard extends StatelessWidget {
                   ),
           ),
           if (!editing)
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.cardLight,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: IconButton(
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_rounded,
-                    color: AppColors.textSecondary, size: 18),
+            GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: AppColors.cardLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.cellBorder),
+                ),
+                child: const Icon(Icons.edit_rounded,
+                    color: AppColors.textSecondary, size: 17),
               ),
             ),
         ],
@@ -286,11 +336,11 @@ class _AvatarCard extends StatelessWidget {
   }
 }
 
-class _ResCard extends StatelessWidget {
+class _ResourceCard extends StatelessWidget {
   final ResourceType type;
   final String label;
   final String value;
-  const _ResCard(this.type, this.label, this.value);
+  const _ResourceCard(this.type, this.label, this.value);
 
   Color get _color => switch (type) {
         ResourceType.diamond => AppColors.diamond,
@@ -302,33 +352,38 @@ class _ResCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            _color.withOpacity(0.12),
-            _color.withOpacity(0.03),
-          ],
+          colors: [_color.withOpacity(0.12), _color.withOpacity(0.03)],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: _color.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: _color.withOpacity(0.1),
+            blurRadius: 12,
+          ),
+        ],
       ),
       child: Column(
         children: [
-          ResourceIcon(type: type, size: 32),
+          ResourceIcon(type: type, size: 30),
           const Gap(8),
           Text(label,
               style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 10,
-                  letterSpacing: 0.5)),
-          const Gap(2),
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.w600)),
+          const Gap(3),
           Text(value,
               style: TextStyle(
                   color: _color,
                   fontSize: 20,
-                  fontWeight: FontWeight.w800)),
+                  fontWeight: FontWeight.w900)),
         ],
       ),
     );
@@ -352,19 +407,19 @@ class _StatCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [color.withOpacity(0.1), color.withOpacity(0.02)],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: color.withOpacity(0.25)),
       ),
       child: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(11),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: Icon(icon, color: color, size: 19),
           ),
           const Gap(10),
           Expanded(
@@ -376,13 +431,14 @@ class _StatCard extends StatelessWidget {
                     style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 10,
-                        letterSpacing: 0.3),
+                        letterSpacing: 0.3,
+                        fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis),
                 Text(value,
                     style: TextStyle(
                         color: color,
                         fontSize: 17,
-                        fontWeight: FontWeight.w800)),
+                        fontWeight: FontWeight.w900)),
               ],
             ),
           ),

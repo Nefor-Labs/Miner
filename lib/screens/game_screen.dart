@@ -19,7 +19,7 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   bool _showExplosion = false;
-  int _cooldown = 0; // seconds remaining
+  int _cooldown = 0;
   Timer? _cooldownTimer;
 
   @override
@@ -59,97 +59,61 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       }
     });
 
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    final navHeight = 66 + 20 + bottomPad;
+
     return Stack(
       children: [
         Container(
           decoration: const BoxDecoration(gradient: AppColors.bgGradient),
           child: SafeArea(
+            bottom: false,
             child: Column(
               children: [
                 const ResourceBar(),
-                const Gap(12),
-                if (game.message != null) ...[
-                  _StatusBanner(game: game),
-                  const Gap(10),
-                ],
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _InfoPill(
-                        icon: Icons.hardware_rounded,
-                        label: 'Кирка Ур.${player.pickaxeLevel}',
-                        color: AppColors.iron,
-                      ),
-                      _InfoPill(
-                        icon: Icons.trending_up_rounded,
-                        label:
-                            '+${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal} очков',
-                        color: AppColors.primary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Gap(12),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF1A2540), Color(0xFF0F1825)],
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: AppColors.cellBorder.withOpacity(0.6),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                    child: Column(
+                      children: [
+                        const Gap(12),
+                        _InfoRow(game: game, pickaxeLevel: player.pickaxeLevel),
+                        const Gap(12),
+                        if (game.message != null) ...[
+                          _StatusBanner(game: game)
+                              .animate()
+                              .fadeIn(duration: 250.ms)
+                              .slideY(
+                                begin: -0.5,
+                                end: 0,
+                                duration: 300.ms,
+                                curve: Curves.easeOutCubic,
+                              ),
+                          const Gap(10),
+                        ],
+                        Expanded(
+                          child: Center(
+                            child: AspectRatio(
+                              aspectRatio: 1,
+                              child: _MiningGrid(game: game, notifier: notifier),
                             ),
-                          ],
-                        ),
-                        child: GridView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 6,
-                          ),
-                          itemCount: 25,
-                          itemBuilder: (context, i) => CellWidget(
-                            cell: game.cells[i],
-                            onTap: game.isActive
-                                ? () => notifier.revealCell(i)
-                                : null,
                           ),
                         ),
-                      ),
+                        const Gap(16),
+                        _ActionButtons(
+                          game: game,
+                          notifier: notifier,
+                          cooldown: _cooldown,
+                        ),
+                        SizedBox(height: navHeight + 8),
+                      ],
                     ),
                   ),
                 ),
-                const Gap(16),
-                _ActionButtons(
-                  game: game,
-                  notifier: notifier,
-                  cooldown: _cooldown,
-                ),
-                const Gap(20),
               ],
             ),
           ),
         ),
-
-        // Взрыв
         if (_showExplosion)
           Positioned.fill(
             child: ExplosionOverlay(
@@ -161,31 +125,66 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 }
 
-class _InfoPill extends StatelessWidget {
+class _InfoRow extends StatelessWidget {
+  final GameState game;
+  final int pickaxeLevel;
+
+  const _InfoRow({required this.game, required this.pickaxeLevel});
+
+  @override
+  Widget build(BuildContext context) {
+    final score = game.roundDiamonds * 10 +
+        game.roundIron * 3 +
+        game.roundCoal;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _Pill(
+          icon: Icons.hardware_rounded,
+          label: 'Кирка Ур.$pickaxeLevel',
+          color: AppColors.iron,
+        ),
+        _Pill(
+          icon: Icons.bolt_rounded,
+          label: '+$score очков',
+          color: score > 0 ? AppColors.gold : AppColors.textSecondary,
+        ),
+      ],
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
 
-  const _InfoPill(
-      {required this.icon, required this.label, required this.color});
+  const _Pill({required this.icon, required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withOpacity(0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: color, size: 14),
           const Gap(5),
-          Text(label,
-              style: TextStyle(
-                  color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
         ],
       ),
     );
@@ -198,30 +197,22 @@ class _StatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    IconData icon;
-    if (game.status == GameStatus.lost) {
-      color = AppColors.mine;
-      icon = Icons.local_fire_department_rounded;
-    } else if (game.status == GameStatus.won) {
-      color = AppColors.success;
-      icon = Icons.emoji_events_rounded;
-    } else {
-      color = AppColors.diamond;
-      icon = Icons.shield_rounded;
-    }
+    final (Color color, IconData icon) = switch (game.status) {
+      GameStatus.lost => (AppColors.mine, Icons.local_fire_department_rounded),
+      GameStatus.won => (AppColors.gold, Icons.emoji_events_rounded),
+      _ => (AppColors.diamond, Icons.shield_rounded),
+    };
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
+          colors: [color.withOpacity(0.22), color.withOpacity(0.06)],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.45)),
+        border: Border.all(color: color.withOpacity(0.5)),
         boxShadow: [
-          BoxShadow(color: color.withOpacity(0.2), blurRadius: 12),
+          BoxShadow(color: color.withOpacity(0.25), blurRadius: 16),
         ],
       ),
       child: Row(
@@ -229,15 +220,69 @@ class _StatusBanner extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 18),
           const Gap(8),
-          Text(game.message!,
-              style: TextStyle(
-                  color: color, fontSize: 15, fontWeight: FontWeight.w700)),
+          Text(
+            game.message!,
+            style: TextStyle(
+              color: color,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(duration: 300.ms)
-        .slideY(begin: -0.4, end: 0, duration: 300.ms, curve: Curves.easeOut);
+    );
+  }
+}
+
+class _MiningGrid extends StatelessWidget {
+  final GameState game;
+  final GameNotifier notifier;
+
+  const _MiningGrid({required this.game, required this.notifier});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF161724), Color(0xFF0E0F1A)],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: AppColors.cellBorder.withOpacity(0.8),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.diamond.withOpacity(0.03),
+            blurRadius: 40,
+            spreadRadius: 4,
+          ),
+        ],
+      ),
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+          crossAxisSpacing: 7,
+          mainAxisSpacing: 7,
+        ),
+        itemCount: 25,
+        itemBuilder: (context, i) => CellWidget(
+          cell: game.cells[i],
+          onTap: game.isActive ? () => notifier.revealCell(i) : null,
+        ),
+      ),
+    );
   }
 }
 
@@ -254,50 +299,53 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Idle — просто кнопка старта
     if (game.status == GameStatus.idle) {
-      return _buildWide(
+      return _wide(
         GradientButton(
           onPressed: notifier.startNewGame,
           gradient: AppColors.primaryGradient,
+          radius: 18,
+          padding: const EdgeInsets.symmetric(vertical: 18),
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.hardware_rounded, size: 18),
-              Gap(8),
-              Text('НАЧАТЬ ДОБЫЧУ'),
+              Icon(Icons.hardware_rounded, size: 20),
+              Gap(10),
+              Text('НАЧАТЬ ДОБЫЧУ', style: TextStyle(fontSize: 16, letterSpacing: 2)),
             ],
           ),
         ),
       );
     }
 
-    // Playing — кнопка кэшаута
     if (game.status == GameStatus.playing) {
       final hasResources =
           game.roundDiamonds + game.roundIron + game.roundCoal > 0;
-      return _buildWide(
+      return _wide(
         GradientButton(
           onPressed: hasResources ? notifier.cashOut : null,
           gradient: AppColors.successGradient,
+          radius: 18,
+          padding: const EdgeInsets.symmetric(vertical: 18),
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.savings_rounded, size: 18),
-              Gap(8),
-              Text('ЗАБРАТЬ РЕСУРСЫ'),
+              Icon(Icons.savings_rounded, size: 20),
+              Gap(10),
+              Text('ЗАБРАТЬ РЕСУРСЫ', style: TextStyle(fontSize: 16, letterSpacing: 2)),
             ],
           ),
         ),
       );
     }
 
-    // Won / Lost — кнопка нового раунда с кулдауном
     final ready = cooldown <= 0;
-    return _buildWide(
+    return _wide(
       GradientButton(
         onPressed: ready ? notifier.startNewGame : null,
         gradient: AppColors.primaryGradient,
+        radius: 18,
+        padding: const EdgeInsets.symmetric(vertical: 18),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -309,9 +357,9 @@ class _ActionButtons extends StatelessWidget {
                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
               ),
             ] else ...[
-              const Icon(Icons.refresh_rounded, size: 18),
-              const Gap(8),
-              const Text('НОВЫЙ РАУНД'),
+              const Icon(Icons.refresh_rounded, size: 20),
+              const Gap(10),
+              const Text('НОВЫЙ РАУНД', style: TextStyle(fontSize: 16, letterSpacing: 2)),
             ],
           ],
         ),
@@ -319,10 +367,8 @@ class _ActionButtons extends StatelessWidget {
     );
   }
 
-  Widget _buildWide(Widget child) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: SizedBox(width: double.infinity, child: child),
-      );
+  Widget _wide(Widget child) =>
+      SizedBox(width: double.infinity, child: child);
 }
 
 class _CooldownRing extends StatelessWidget {
@@ -332,25 +378,25 @@ class _CooldownRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 22,
-      height: 22,
+      width: 24,
+      height: 24,
       child: Stack(
         fit: StackFit.expand,
         children: [
           CircularProgressIndicator(
             value: seconds / 3,
             strokeWidth: 2.5,
-            backgroundColor: Colors.white24,
-            valueColor:
-                const AlwaysStoppedAnimation<Color>(Colors.white),
+            backgroundColor: Colors.white.withOpacity(0.2),
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
           ),
           Center(
             child: Text(
               '$seconds',
               style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
             ),
           ),
         ],

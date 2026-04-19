@@ -18,17 +18,19 @@ class QuestsScreen extends ConsumerWidget {
     final hours = minutes ~/ 60;
     final mins = minutes % 60;
     final timeStr = hours > 0 ? '${hours}ч ${mins}м' : '${mins}м';
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    final navHeight = 66 + 20 + bottomPad;
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ResourceBar(),
-            const Gap(20),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -43,57 +45,77 @@ class QuestsScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [
-                        AppColors.diamond.withOpacity(0.2),
-                        AppColors.diamond.withOpacity(0.05),
-                      ]),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(
-                          color: AppColors.diamond.withOpacity(0.35)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.timer_rounded,
-                            color: AppColors.diamond, size: 14),
-                        const Gap(5),
-                        Text(
-                          'Через $timeStr',
-                          style: const TextStyle(
-                            color: AppColors.diamond,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _TimerBadge(timeStr: timeStr),
                 ],
               ),
             ),
-            const Gap(20),
+            const Gap(16),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                padding: EdgeInsets.fromLTRB(20, 4, 20, navHeight + 8),
                 itemCount: state.quests.length,
-                separatorBuilder: (_, __) => const Gap(14),
+                separatorBuilder: (_, __) => const Gap(12),
                 itemBuilder: (context, i) {
                   return _QuestCard(
                     quest: state.quests[i],
-                    onClaim: () =>
-                        notifier.claimReward(state.quests[i].id),
+                    onClaim: () => notifier.claimReward(state.quests[i].id),
                   )
                       .animate(delay: (i * 100).ms)
                       .fadeIn()
-                      .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic);
+                      .slideY(
+                        begin: 0.2,
+                        end: 0,
+                        curve: Curves.easeOutCubic,
+                        duration: 350.ms,
+                      );
                 },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TimerBadge extends StatelessWidget {
+  final String timeStr;
+  const _TimerBadge({required this.timeStr});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.diamond.withOpacity(0.18),
+            AppColors.diamond.withOpacity(0.06),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppColors.diamond.withOpacity(0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.diamond.withOpacity(0.12),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_rounded, color: AppColors.diamond, size: 14),
+          const Gap(5),
+          Text(
+            'Через $timeStr',
+            style: const TextStyle(
+              color: AppColors.diamond,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -110,14 +132,11 @@ class _QuestCard extends StatelessWidget {
     final done = quest.completed;
     final claimed = quest.rewardClaimed;
 
-    Color accentColor;
-    if (claimed) {
-      accentColor = AppColors.textSecondary;
-    } else if (done) {
-      accentColor = AppColors.success;
-    } else {
-      accentColor = AppColors.primary;
-    }
+    final Color accent = claimed
+        ? AppColors.textSecondary
+        : done
+            ? AppColors.success
+            : AppColors.primary;
 
     return Container(
       decoration: BoxDecoration(
@@ -130,25 +149,31 @@ class _QuestCard extends StatelessWidget {
                   AppColors.surface.withOpacity(0.3),
                 ]
               : [
-                  accentColor.withOpacity(0.1),
+                  accent.withOpacity(0.1),
                   AppColors.card,
                 ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: claimed
-              ? AppColors.cellBorder.withOpacity(0.3)
-              : accentColor.withOpacity(0.4),
+              ? AppColors.cellBorder.withOpacity(0.4)
+              : accent.withOpacity(done ? 0.55 : 0.3),
           width: done && !claimed ? 1.5 : 1,
         ),
         boxShadow: done && !claimed
             ? [
                 BoxShadow(
-                  color: accentColor.withOpacity(0.2),
-                  blurRadius: 16,
-                )
+                  color: accent.withOpacity(0.2),
+                  blurRadius: 20,
+                ),
               ]
-            : null,
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -156,18 +181,18 @@ class _QuestCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Type icon container
               Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                    accentColor.withOpacity(0.2),
-                    accentColor.withOpacity(0.05),
-                  ]),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: accentColor.withOpacity(0.3)),
+                  gradient: LinearGradient(
+                    colors: [
+                      accent.withOpacity(0.2),
+                      accent.withOpacity(0.06),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: accent.withOpacity(0.35)),
                 ),
                 child: Center(
                   child: Text(
@@ -189,13 +214,13 @@ class _QuestCard extends StatelessWidget {
                                 : AppColors.textPrimary,
                           ),
                     ),
-                    const Gap(2),
+                    const Gap(3),
                     Text(
                       '${quest.progress} / ${quest.target}',
                       style: TextStyle(
-                        color: accentColor,
+                        color: accent,
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -205,49 +230,49 @@ class _QuestCard extends StatelessWidget {
                 GradientButton(
                   onPressed: onClaim,
                   gradient: AppColors.successGradient,
-                  radius: 12,
+                  shadowColor: AppColors.success,
+                  radius: 14,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                      horizontal: 16, vertical: 12),
                   child: const Text(
                     'ЗАБРАТЬ',
                     style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700),
+                        fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1),
                   ),
                 )
               else if (claimed)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: AppColors.textSecondary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.textSecondary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.textSecondary.withOpacity(0.15)),
                   ),
-                  child: const Icon(Icons.check_circle_rounded,
+                  child: const Icon(Icons.check_rounded,
                       color: AppColors.textSecondary, size: 20),
                 ),
             ],
           ),
           const Gap(14),
-          // Progress bar
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: quest.percent,
-              minHeight: 6,
-              backgroundColor: AppColors.cellBorder.withOpacity(0.4),
+              minHeight: 7,
+              backgroundColor: AppColors.cellBorder.withOpacity(0.5),
               valueColor: AlwaysStoppedAnimation<Color>(
-                claimed ? AppColors.textSecondary : accentColor,
+                claimed ? AppColors.textSecondary : accent,
               ),
             ),
           ),
           const Gap(12),
-          // Rewards row
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
-              color: AppColors.bg.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.bgDeep.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.cellBorder.withOpacity(0.4)),
             ),
             child: Row(
               children: [
@@ -259,14 +284,11 @@ class _QuestCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const Gap(10),
-                _RewardChip('💎', quest.rewardDiamond, AppColors.diamond,
-                    claimed),
-                const Gap(6),
-                _RewardChip(
-                    '🪨', quest.rewardIron, AppColors.iron, claimed),
-                const Gap(6),
-                _RewardChip(
-                    '⬛', quest.rewardCoal, AppColors.coal, claimed),
+                _RewardItem('💎', quest.rewardDiamond, AppColors.diamond, claimed),
+                const Gap(8),
+                _RewardItem('🪨', quest.rewardIron, AppColors.iron, claimed),
+                const Gap(8),
+                _RewardItem('⬛', quest.rewardCoal, AppColors.coal, claimed),
               ],
             ),
           ),
@@ -276,13 +298,13 @@ class _QuestCard extends StatelessWidget {
   }
 }
 
-class _RewardChip extends StatelessWidget {
+class _RewardItem extends StatelessWidget {
   final String emoji;
   final int amount;
   final Color color;
   final bool dimmed;
 
-  const _RewardChip(this.emoji, this.amount, this.color, this.dimmed);
+  const _RewardItem(this.emoji, this.amount, this.color, this.dimmed);
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +318,7 @@ class _RewardChip extends StatelessWidget {
           style: TextStyle(
             color: dimmed ? AppColors.textSecondary : color,
             fontSize: 13,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ],
