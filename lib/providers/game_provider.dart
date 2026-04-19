@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/cell.dart';
 import '../models/resource_type.dart';
 import 'player_provider.dart';
+import 'quest_provider.dart';
 
 enum GameStatus { idle, playing, won, lost }
 
@@ -115,6 +116,7 @@ class GameNotifier extends Notifier<GameState> {
       final revealedAll =
           updatedCells.map((c) => c.copyWith(isRevealed: true)).toList();
       ref.read(playerProvider.notifier).recordGame(roundScore: 0);
+      ref.read(questProvider.notifier).trackEvent(gameCompleted: true);
       state = state.copyWith(
         cells: revealedAll,
         status: GameStatus.lost,
@@ -150,6 +152,10 @@ class GameNotifier extends Notifier<GameState> {
           .addResources(diamonds: d, iron: ir, coal: co);
       final score = d * 10 + ir * 3 + co * 1;
       ref.read(playerProvider.notifier).recordGame(roundScore: score);
+      ref.read(questProvider.notifier).trackEvent(
+        diamonds: d, iron: ir, coal: co,
+        gameCompleted: true, survived: true,
+      );
       final revealedAll =
           updatedCells.map((c) => c.copyWith(isRevealed: true)).toList();
       state = state.copyWith(
@@ -184,6 +190,10 @@ class GameNotifier extends Notifier<GameState> {
         .addResources(diamonds: d, iron: ir, coal: co);
     final score = d * 10 + ir * 3 + co * 1;
     ref.read(playerProvider.notifier).recordGame(roundScore: score);
+    ref.read(questProvider.notifier).trackEvent(
+      diamonds: d, iron: ir, coal: co,
+      gameCompleted: true, survived: true, cashedOut: true,
+    );
 
     final revealedAll =
         state.cells.map((c) => c.copyWith(isRevealed: true)).toList();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import 'game_screen.dart';
+import 'quests_screen.dart';
 import 'shop_screen.dart';
 import 'profile_screen.dart';
 
@@ -12,6 +13,7 @@ class MainShell extends ConsumerWidget {
 
   static const _screens = [
     GameScreen(),
+    QuestsScreen(),
     ShopScreen(),
     ProfileScreen(),
   ];
@@ -47,9 +49,7 @@ class _BottomNav extends StatelessWidget {
           colors: [Color(0xFF0F1722), Color(0xFF080B14)],
         ),
         border: Border(
-          top: BorderSide(
-            color: AppColors.cellBorder.withOpacity(0.5),
-          ),
+          top: BorderSide(color: AppColors.cellBorder.withOpacity(0.5)),
         ),
         boxShadow: [
           BoxShadow(
@@ -72,16 +72,23 @@ class _BottomNav extends StatelessWidget {
                 onTap: () => onTap(0),
               ),
               _NavItem(
-                icon: Icons.storefront_rounded,
-                label: 'Магазин',
+                icon: Icons.assignment_rounded,
+                label: 'Задания',
                 selected: currentIndex == 1,
                 onTap: () => onTap(1),
+                accent: AppColors.success,
+              ),
+              _NavItem(
+                icon: Icons.storefront_rounded,
+                label: 'Магазин',
+                selected: currentIndex == 2,
+                onTap: () => onTap(2),
               ),
               _NavItem(
                 icon: Icons.person_rounded,
                 label: 'Профиль',
-                selected: currentIndex == 2,
-                onTap: () => onTap(2),
+                selected: currentIndex == 3,
+                onTap: () => onTap(3),
               ),
             ],
           ),
@@ -96,70 +103,57 @@ class _NavItem extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final Color? accent;
 
   const _NavItem({
     required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
+    this.accent,
   });
 
   @override
   Widget build(BuildContext context) {
+    final color = selected ? (accent ?? AppColors.primary) : AppColors.textSecondary;
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: selected
-                      ? LinearGradient(colors: [
-                          AppColors.primary.withOpacity(0.25),
-                          AppColors.primary.withOpacity(0.1),
-                        ])
-                      : null,
-                  borderRadius: BorderRadius.circular(14),
-                  border: selected
-                      ? Border.all(
-                          color: AppColors.primary.withOpacity(0.4),
-                          width: 1,
-                        )
-                      : null,
-                ),
-                child: Icon(
-                  icon,
-                  color: selected
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
-                  size: 22,
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: selected
+                    ? LinearGradient(colors: [
+                        color.withOpacity(0.25),
+                        color.withOpacity(0.08),
+                      ])
+                    : null,
+                borderRadius: BorderRadius.circular(14),
+                border: selected
+                    ? Border.all(color: color.withOpacity(0.4))
+                    : null,
               ),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: selected
-                      ? FontWeight.w700
-                      : FontWeight.w400,
-                  letterSpacing: 0.5,
-                ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight:
+                    selected ? FontWeight.w700 : FontWeight.w400,
+                letterSpacing: 0.5,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

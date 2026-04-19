@@ -6,99 +6,127 @@ import '../providers/game_provider.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cell_widget.dart';
+import '../widgets/explosion_overlay.dart';
 import '../widgets/resource_bar.dart';
 
-class GameScreen extends ConsumerWidget {
+class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends ConsumerState<GameScreen> {
+  bool _showExplosion = false;
+
+  @override
+  Widget build(BuildContext context) {
     final game = ref.watch(gameProvider);
     final player = ref.watch(playerProvider);
     final notifier = ref.read(gameProvider.notifier);
 
-    return Container(
-      decoration: const BoxDecoration(gradient: AppColors.bgGradient),
-      child: SafeArea(
-        child: Column(
-          children: [
-            const ResourceBar(),
-            const Gap(12),
-            if (game.message != null) ...[
-              _StatusBanner(game: game),
-              const Gap(10),
-            ],
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _InfoPill(
-                    icon: Icons.hardware_rounded,
-                    label: 'Кирка Ур.${player.pickaxeLevel}',
-                    color: AppColors.iron,
-                  ),
-                  _InfoPill(
-                    icon: Icons.trending_up_rounded,
-                    label:
-                        '+${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal} очков',
-                    color: AppColors.primary,
-                  ),
+    // Trigger explosion when game is lost
+    ref.listen(gameProvider, (prev, next) {
+      if (prev?.status != GameStatus.lost &&
+          next.status == GameStatus.lost) {
+        setState(() => _showExplosion = true);
+      }
+    });
+
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(gradient: AppColors.bgGradient),
+          child: SafeArea(
+            child: Column(
+              children: [
+                const ResourceBar(),
+                const Gap(12),
+                if (game.message != null) ...[
+                  _StatusBanner(game: game),
+                  const Gap(10),
                 ],
-              ),
-            ),
-            const Gap(12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF1A2540), Color(0xFF0F1825)],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _InfoPill(
+                        icon: Icons.hardware_rounded,
+                        label: 'Кирка Ур.${player.pickaxeLevel}',
+                        color: AppColors.iron,
                       ),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: AppColors.cellBorder.withOpacity(0.6),
+                      _InfoPill(
+                        icon: Icons.trending_up_rounded,
+                        label:
+                            '+${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal} очков',
+                        color: AppColors.primary,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+                    ],
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF1A2540), Color(0xFF0F1825)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: AppColors.cellBorder.withOpacity(0.6),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 5,
-                        crossAxisSpacing: 6,
-                        mainAxisSpacing: 6,
-                      ),
-                      itemCount: 25,
-                      itemBuilder: (context, i) => CellWidget(
-                        cell: game.cells[i],
-                        onTap: game.isActive
-                            ? () => notifier.revealCell(i)
-                            : null,
+                        child: GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 5,
+                            crossAxisSpacing: 6,
+                            mainAxisSpacing: 6,
+                          ),
+                          itemCount: 25,
+                          itemBuilder: (context, i) => CellWidget(
+                            cell: game.cells[i],
+                            onTap: game.isActive
+                                ? () => notifier.revealCell(i)
+                                : null,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+                const Gap(16),
+                _ActionButtons(game: game, notifier: notifier),
+                const Gap(20),
+              ],
             ),
-            const Gap(16),
-            _ActionButtons(game: game, notifier: notifier),
-            const Gap(20),
-          ],
+          ),
         ),
-      ),
+
+        // Explosion overlay
+        if (_showExplosion)
+          Positioned.fill(
+            child: ExplosionOverlay(
+              onDone: () => setState(() => _showExplosion = false),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -169,10 +197,7 @@ class _StatusBanner extends StatelessWidget {
         border: Border.all(color: color.withOpacity(0.45)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 12,
-            spreadRadius: 0,
-          ),
+              color: color.withOpacity(0.2), blurRadius: 12, spreadRadius: 0),
         ],
       ),
       child: Row(
@@ -183,10 +208,7 @@ class _StatusBanner extends StatelessWidget {
           Text(
             game.message!,
             style: TextStyle(
-              color: color,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
+                color: color, fontSize: 15, fontWeight: FontWeight.w700),
           ),
         ],
       ),
