@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 class ExplosionOverlay extends StatefulWidget {
   final VoidCallback onDone;
-
   const ExplosionOverlay({super.key, required this.onDone});
 
   @override
@@ -15,24 +14,21 @@ class _ExplosionOverlayState extends State<ExplosionOverlay>
   late AnimationController _particleCtrl;
   late AnimationController _shakeCtrl;
   late AnimationController _flashCtrl;
-
   late Animation<double> _flash;
   late Animation<double> _shake;
-
   final _rng = Random();
   late List<_Particle> _particles;
 
   @override
   void initState() {
     super.initState();
-
-    _particles = List.generate(35, (_) => _Particle(_rng));
+    _particles = List.generate(50, (_) => _Particle(_rng));
 
     _flashCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 700),
     );
-    _flash = Tween<double>(begin: 0.7, end: 0).animate(
+    _flash = Tween<double>(begin: 0.8, end: 0).animate(
       CurvedAnimation(parent: _flashCtrl, curve: Curves.easeOut),
     );
 
@@ -46,7 +42,7 @@ class _ExplosionOverlayState extends State<ExplosionOverlay>
 
     _particleCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 1000),
     );
 
     _flashCtrl.forward();
@@ -67,24 +63,34 @@ class _ExplosionOverlayState extends State<ExplosionOverlay>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_particleCtrl, _shakeCtrl, _flashCtrl]),
+      animation:
+          Listenable.merge([_particleCtrl, _shakeCtrl, _flashCtrl]),
       builder: (context, _) {
         final shake = _shake.value;
-        final dx = sin(_shakeCtrl.value * pi * 8) * 14 * shake;
-        final dy = cos(_shakeCtrl.value * pi * 6) * 10 * shake;
+        final dx = sin(_shakeCtrl.value * pi * 9) * 16 * shake;
+        final dy = cos(_shakeCtrl.value * pi * 7) * 10 * shake;
 
         return Transform.translate(
           offset: Offset(dx, dy),
           child: Stack(
             children: [
-              // Red flash
               Opacity(
-                opacity: _flash.value,
+                opacity: _flash.value * 0.75,
                 child: Container(
-                  color: const Color(0xFFCC1111),
+                  decoration: const BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 1.0,
+                      colors: [
+                        Color(0xFFFF6600),
+                        Color(0xFFCC1111),
+                        Colors.transparent,
+                      ],
+                      stops: [0.0, 0.5, 1.0],
+                    ),
+                  ),
                 ),
               ),
-              // Particles
               CustomPaint(
                 painter: _ParticlePainter(
                   particles: _particles,
@@ -92,28 +98,27 @@ class _ExplosionOverlayState extends State<ExplosionOverlay>
                 ),
                 size: MediaQuery.of(context).size,
               ),
-              // Boom text
-              if (_particleCtrl.value < 0.5)
+              if (_particleCtrl.value < 0.55)
                 Center(
                   child: Opacity(
-                    opacity: (1 - _particleCtrl.value * 2).clamp(0, 1),
+                    opacity: (1 - _particleCtrl.value * 1.8).clamp(0, 1),
                     child: Transform.scale(
-                      scale: 0.5 + _particleCtrl.value * 2,
+                      scale: 0.4 + _particleCtrl.value * 2.2,
                       child: const Text(
                         'БУМ!',
                         style: TextStyle(
-                          fontSize: 72,
+                          fontSize: 76,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
-                          letterSpacing: 4,
+                          letterSpacing: 6,
                           shadows: [
                             Shadow(
                               color: Color(0xFFFF4444),
-                              blurRadius: 20,
+                              blurRadius: 30,
                             ),
                             Shadow(
                               color: Color(0xFFFF8800),
-                              blurRadius: 40,
+                              blurRadius: 60,
                             ),
                           ],
                         ),
@@ -135,20 +140,23 @@ class _Particle {
   final double size;
   final Color color;
   final double startDelay;
+  final bool isSpark;
 
   _Particle(Random rng)
       : angle = rng.nextDouble() * pi * 2,
-        speed = 0.3 + rng.nextDouble() * 0.7,
-        size = 4 + rng.nextDouble() * 10,
-        startDelay = rng.nextDouble() * 0.2,
+        speed = 0.25 + rng.nextDouble() * 0.75,
+        size = 3 + rng.nextDouble() * 10,
+        startDelay = rng.nextDouble() * 0.25,
+        isSpark = rng.nextBool(),
         color = [
           const Color(0xFFFF4444),
-          const Color(0xFFFF8800),
+          const Color(0xFFFF7700),
           const Color(0xFFFFCC00),
           const Color(0xFFFFFFFF),
           const Color(0xFFFF2200),
-          const Color(0xFFFF6600),
-        ][rng.nextInt(6)];
+          const Color(0xFFFF5500),
+          const Color(0xFFFFDD44),
+        ][rng.nextInt(7)];
 }
 
 class _ParticlePainter extends CustomPainter {
@@ -161,17 +169,32 @@ class _ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final maxDist = size.width * 0.6;
+    final maxDist = size.width * 0.65;
 
     for (final p in particles) {
-      final t = ((progress - p.startDelay) / (1 - p.startDelay)).clamp(0, 1).toDouble();
+      final t =
+          ((progress - p.startDelay) / (1 - p.startDelay)).clamp(0, 1).toDouble();
       if (t <= 0) continue;
 
-      final dist = t * maxDist * p.speed;
+      final eased = 1 - pow(1 - t, 3).toDouble();
+      final dist = eased * maxDist * p.speed;
       final x = cx + cos(p.angle) * dist;
-      final y = cy + sin(p.angle) * dist;
-      final opacity = (1 - t).clamp(0.0, 1.0);
-      final currentSize = p.size * (1 - t * 0.5);
+      final y = cy + sin(p.angle) * dist - dist * 0.2;
+      final opacity = pow(1 - t, 1.5).toDouble().clamp(0.0, 1.0);
+      final currentSize = p.size * (1 - t * 0.6);
+
+      if (p.isSpark) {
+        final trailX = cx + cos(p.angle) * dist * 0.7;
+        final trailY = cy + sin(p.angle) * dist * 0.7 - dist * 0.7 * 0.2;
+        canvas.drawLine(
+          Offset(trailX, trailY),
+          Offset(x, y),
+          Paint()
+            ..color = p.color.withOpacity(opacity * 0.5)
+            ..strokeWidth = currentSize * 0.5
+            ..strokeCap = StrokeCap.round,
+        );
+      }
 
       canvas.drawCircle(
         Offset(x, y),
