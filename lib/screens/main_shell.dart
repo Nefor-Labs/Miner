@@ -21,10 +21,7 @@ class MainShell extends ConsumerWidget {
     final tab = ref.watch(_tabProvider);
 
     return Scaffold(
-      body: IndexedStack(
-        index: tab,
-        children: _screens,
-      ),
+      body: IndexedStack(index: tab, children: _screens),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.cellBorder)),
@@ -34,16 +31,16 @@ class MainShell extends ConsumerWidget {
           onTap: (i) => ref.read(_tabProvider.notifier).state = i,
           items: const [
             BottomNavigationBarItem(
-              icon: Text('⛏', style: TextStyle(fontSize: 22)),
-              label: 'Mine',
+              icon: Icon(Icons.hardware_rounded),
+              label: 'Шахта',
             ),
             BottomNavigationBarItem(
-              icon: Text('🏪', style: TextStyle(fontSize: 22)),
-              label: 'Shop',
+              icon: Icon(Icons.storefront_rounded),
+              label: 'Магазин',
             ),
             BottomNavigationBarItem(
-              icon: Text('👤', style: TextStyle(fontSize: 22)),
-              label: 'Profile',
+              icon: Icon(Icons.person_rounded),
+              label: 'Профиль',
             ),
           ],
         ),
