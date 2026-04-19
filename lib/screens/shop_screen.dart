@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import '../models/resource_type.dart';
 import '../models/upgrade.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/resource_bar.dart';
+import '../widgets/resource_icon.dart';
 
 class ShopScreen extends ConsumerWidget {
   const ShopScreen({super.key});
@@ -22,14 +24,15 @@ class ShopScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'SHOP',
+                'МАГАЗИН',
                 style: Theme.of(context).textTheme.displayLarge,
               ),
             ),
             const Gap(8),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: shopUpgrades.length,
                 separatorBuilder: (_, __) => const Gap(12),
                 itemBuilder: (context, i) {
@@ -49,7 +52,6 @@ class ShopScreen extends ConsumerWidget {
 
 class _UpgradeCard extends ConsumerWidget {
   final Upgrade upgrade;
-
   const _UpgradeCard({required this.upgrade});
 
   @override
@@ -63,24 +65,18 @@ class _UpgradeCard extends ConsumerWidget {
     if (upgrade.type == UpgradeType.pickaxe) {
       final current = player.pickaxeLevel;
       final candidates = upgrade.levels.where((l) => l.level > current);
-      if (candidates.isEmpty) {
-        maxed = true;
-      } else {
-        nextLevel = candidates.first;
-      }
+      maxed = candidates.isEmpty;
+      if (!maxed) nextLevel = candidates.first;
     } else if (upgrade.type == UpgradeType.multiplier) {
       final current = player.bonusMultiplier;
       final candidates = upgrade.levels.where((l) => l.level > current);
-      if (candidates.isEmpty) {
-        maxed = true;
-      } else {
-        nextLevel = candidates.first;
-      }
-    } else if (upgrade.type == UpgradeType.shield) {
+      maxed = candidates.isEmpty;
+      if (!maxed) nextLevel = candidates.first;
+    } else {
       nextLevel = upgrade.levels.first;
     }
 
-    bool canAfford = nextLevel != null &&
+    final canAfford = nextLevel != null &&
         player.diamonds >= nextLevel.costDiamond &&
         player.iron >= nextLevel.costIron &&
         player.coal >= nextLevel.costCoal;
@@ -93,23 +89,40 @@ class _UpgradeCard extends ConsumerWidget {
         coal: nextLevel.costCoal,
       );
       if (!spent) return;
-
       if (upgrade.type == UpgradeType.pickaxe) {
         notifier.upgradePickaxe(nextLevel.level);
       } else if (upgrade.type == UpgradeType.multiplier) {
         notifier.upgradeMultiplier(nextLevel.level);
-      } else if (upgrade.type == UpgradeType.shield) {
+      } else {
         notifier.addShieldCharge();
       }
     }
 
-    String statusLabel;
+    final String statusLabel;
     if (upgrade.type == UpgradeType.pickaxe) {
-      statusLabel = maxed ? 'MAX' : 'Lvl ${player.pickaxeLevel}';
+      statusLabel = maxed ? 'МАКС' : 'Ур.${player.pickaxeLevel}';
     } else if (upgrade.type == UpgradeType.multiplier) {
-      statusLabel = maxed ? 'MAX' : 'x${player.bonusMultiplier}';
+      statusLabel = maxed ? 'МАКС' : 'x${player.bonusMultiplier}';
     } else {
-      statusLabel = '🛡 ${player.shieldCharges}';
+      statusLabel = 'x${player.shieldCharges}';
+    }
+
+    final IconData upgradeIcon;
+    if (upgrade.type == UpgradeType.pickaxe) {
+      upgradeIcon = Icons.hardware_rounded;
+    } else if (upgrade.type == UpgradeType.shield) {
+      upgradeIcon = Icons.shield_rounded;
+    } else {
+      upgradeIcon = Icons.bolt_rounded;
+    }
+
+    final Color iconColor;
+    if (upgrade.type == UpgradeType.pickaxe) {
+      iconColor = AppColors.iron;
+    } else if (upgrade.type == UpgradeType.shield) {
+      iconColor = AppColors.success;
+    } else {
+      iconColor = AppColors.primary;
     }
 
     return Container(
@@ -120,7 +133,6 @@ class _UpgradeCard extends ConsumerWidget {
           color: canAfford
               ? AppColors.primary.withOpacity(0.5)
               : AppColors.cellBorder,
-          width: 1,
         ),
       ),
       padding: const EdgeInsets.all(16),
@@ -129,18 +141,24 @@ class _UpgradeCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Text(upgrade.emoji, style: const TextStyle(fontSize: 28)),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(upgradeIcon, color: iconColor, size: 24),
+              ),
               const Gap(12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(upgrade.name,
+                        style: Theme.of(context).textTheme.titleLarge),
                     Text(
-                      upgrade.name,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    Text(
-                      nextLevel?.description ?? 'Fully upgraded',
+                      nextLevel?.description ?? 'Максимальный уровень',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -170,23 +188,27 @@ class _UpgradeCard extends ConsumerWidget {
             const Gap(12),
             Row(
               children: [
-                _CostChip('💎', nextLevel.costDiamond, player.diamonds),
+                _CostChip(ResourceType.diamond, nextLevel.costDiamond,
+                    player.diamonds),
                 const Gap(8),
-                _CostChip('🪨', nextLevel.costIron, player.iron),
+                _CostChip(
+                    ResourceType.iron, nextLevel.costIron, player.iron),
                 const Gap(8),
-                _CostChip('⬛', nextLevel.costCoal, player.coal),
+                _CostChip(
+                    ResourceType.coal, nextLevel.costCoal, player.coal),
                 const Spacer(),
                 ElevatedButton(
                   onPressed: canAfford ? purchase : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 10),
-                    backgroundColor: canAfford
-                        ? AppColors.primary
-                        : AppColors.accent,
+                    backgroundColor:
+                        canAfford ? AppColors.primary : AppColors.accent,
                   ),
                   child: Text(
-                    upgrade.type == UpgradeType.shield ? 'BUY' : 'UPGRADE',
+                    upgrade.type == UpgradeType.shield
+                        ? 'КУПИТЬ'
+                        : 'УЛУЧШИТЬ',
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),
@@ -200,11 +222,11 @@ class _UpgradeCard extends ConsumerWidget {
 }
 
 class _CostChip extends StatelessWidget {
-  final String emoji;
+  final ResourceType type;
   final int cost;
   final int have;
 
-  const _CostChip(this.emoji, this.cost, this.have);
+  const _CostChip(this.type, this.cost, this.have);
 
   @override
   Widget build(BuildContext context) {
@@ -212,7 +234,7 @@ class _CostChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 13)),
+        ResourceIcon(type: type, size: 16),
         const Gap(2),
         Text(
           '$cost',
