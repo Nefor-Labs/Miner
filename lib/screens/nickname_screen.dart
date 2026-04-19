@@ -39,13 +39,30 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(
-                    'assets/images/miner.jpg',
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
+                // Логотип — уменьшен и показывает всю картинку целиком
+                Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.6),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.25),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: Image.asset(
+                      'assets/images/miner.jpg',
+                      fit: BoxFit.contain, // вся картинка целиком
+                    ),
                   ),
                 )
                     .animate()
@@ -64,9 +81,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                         color: AppColors.primary,
                       ),
                 ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.3),
-                const Gap(8),
+                const Gap(6),
                 Text(
-                  'Enter your miner name to begin',
+                  'Введи своё шахтёрское имя',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ).animate(delay: 300.ms).fadeIn(),
                 const Gap(40),
@@ -83,7 +100,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                   ),
                   decoration: InputDecoration(
                     counterText: '',
-                    hintText: 'NICKNAME',
+                    hintText: 'НИК',
                     hintStyle: const TextStyle(
                       color: AppColors.textSecondary,
                       letterSpacing: 4,
@@ -95,8 +112,8 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide:
-                          const BorderSide(color: AppColors.primary, width: 2),
+                      borderSide: const BorderSide(
+                          color: AppColors.primary, width: 2),
                     ),
                     filled: true,
                     fillColor: AppColors.surface,
@@ -106,9 +123,10 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen> {
                 const Gap(20),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: _confirm,
-                    child: const Text('START MINING'),
+                    icon: const Icon(Icons.hardware_rounded, size: 18),
+                    label: const Text('НАЧАТЬ ИГРУ'),
                   ),
                 ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.3),
               ],
