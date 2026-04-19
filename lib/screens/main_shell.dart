@@ -26,6 +26,7 @@ class MainShell extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
+      extendBody: true,
       body: IndexedStack(index: tab, children: _screens),
       bottomNavigationBar: _BottomNav(
         currentIndex: tab,
@@ -42,49 +43,55 @@ class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.currentIndex, required this.onTap});
 
   static const _items = [
-    (Icons.hardware_rounded, AppColors.primary),
-    (Icons.factory_rounded, AppColors.iron),
-    (Icons.assignment_rounded, AppColors.success),
-    (Icons.storefront_rounded, AppColors.diamond),
-    (Icons.person_rounded, AppColors.primary),
+    (icon: Icons.hardware_rounded, label: 'Добыча', accent: AppColors.primary),
+    (icon: Icons.factory_rounded, label: 'База', accent: AppColors.iron),
+    (icon: Icons.assignment_rounded, label: 'Задания', accent: AppColors.success),
+    (icon: Icons.storefront_rounded, label: 'Магазин', accent: AppColors.diamond),
+    (icon: Icons.person_rounded, label: 'Профиль', accent: AppColors.gold),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0F1722), Color(0xFF080B14)],
-        ),
-        border: Border(
-          top: BorderSide(color: AppColors.cellBorder.withOpacity(0.4)),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
+      color: Colors.transparent,
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(_items.length, (i) {
-              final (icon, accent) = _items[i];
-              final selected = currentIndex == i;
-              return _NavIcon(
-                icon: icon,
-                selected: selected,
-                accent: accent,
-                onTap: () => onTap(i),
-              );
-            }),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Container(
+            height: 66,
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(33),
+              border: Border.all(color: AppColors.cellBorder, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.6),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: List.generate(_items.length, (i) {
+                final item = _items[i];
+                final selected = currentIndex == i;
+                return Expanded(
+                  child: _NavItem(
+                    icon: item.icon,
+                    label: item.label,
+                    accent: item.accent,
+                    selected: selected,
+                    onTap: () => onTap(i),
+                  ),
+                );
+              }),
+            ),
           ),
         ),
       ),
@@ -92,16 +99,18 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-class _NavIcon extends StatelessWidget {
+class _NavItem extends StatelessWidget {
   final IconData icon;
-  final bool selected;
+  final String label;
   final Color accent;
+  final bool selected;
   final VoidCallback onTap;
 
-  const _NavIcon({
+  const _NavItem({
     required this.icon,
-    required this.selected,
+    required this.label,
     required this.accent,
+    required this.selected,
     required this.onTap,
   });
 
@@ -110,36 +119,59 @@ class _NavIcon extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        width: 52,
-        height: 44,
-        decoration: selected
-            ? BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    accent.withOpacity(0.28),
-                    accent.withOpacity(0.08),
-                  ],
+      child: SizedBox.expand(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: selected
+                  ? BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          accent.withOpacity(0.22),
+                          accent.withOpacity(0.08),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(22),
+                      border:
+                          Border.all(color: accent.withOpacity(0.4), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withOpacity(0.22),
+                          blurRadius: 14,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    )
+                  : null,
+              child: Icon(
+                icon,
+                color: selected
+                    ? accent
+                    : AppColors.textSecondary.withOpacity(0.5),
+                size: selected ? 22 : 20,
+              ),
+            ),
+            const SizedBox(height: 3),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: selected ? 1.0 : 0.0,
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: accent.withOpacity(0.45), width: 1.2),
-                boxShadow: [
-                  BoxShadow(
-                    color: accent.withOpacity(0.2),
-                    blurRadius: 10,
-                    spreadRadius: 0,
-                  ),
-                ],
-              )
-            : null,
-        child: Icon(
-          icon,
-          color: selected ? accent : AppColors.textSecondary.withOpacity(0.6),
-          size: selected ? 24 : 22,
+              ),
+            ),
+          ],
         ),
       ),
     );
