@@ -1,0 +1,144 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  check-version:
+    name: Check version tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.read_version.outputs.version }}
+      tag_exists: ${{ steps.check_tag.outputs.tag_exists }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version from miner.txt
+        id: read_version
+        run: |
+          VERSION=$(cat miner.txt | tr -d '[:space:]')
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version: v${VERSION}"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          TAG="v$(cat miner.txt | tr -d '[:space:]')"
+          if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${TAG} already exists — skipping build."
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "Tag ${TAG} not found — will build and release."
+          fi
+
+  build:
+    name: Build APK
+    needs: check-version
+    if: needs.check-version.outputs.tag_exists == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Verify code
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build release APK
+        run: flutter build apk --release --target-platform android-arm64
+
+      - name: Rename APK
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          cp build/app/outputs/flutter-apk/app-release.apk "miner-${VERSION}.apk"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          DATE=$(date +'%Y-%m-%d')
+
+          # Get recent commits for changelog
+          COMMITS=$(git log --oneline -10 --no-merges 2>/dev/null || echo "Initial release")
+
+          # Pick a random tagline to make each release description unique
+          TAGLINES=(
+            "New ore seams discovered. Time to mine!"
+            "The tunnels go deeper. Resources await."
+            "Fresh shafts opened. Diamonds are calling."
+            "Underground riches updated. Grab your pickaxe!"
+            "New expedition ready. What will you uncover?"
+            "The mine never sleeps. Another update is here."
+            "Ore veins refreshed. Your pickaxe is waiting."
+            "Deeper than ever. New build is live."
+          )
+          TAGLINE=${TAGLINES[$RANDOM % ${#TAGLINES[@]}]}
+
+          cat <<EOF > release_notes.md
+          ## Шахтёр ${VERSION} — ${DATE}
+
+          > ${TAGLINE}
+
+          ### What's new
+
+          $(echo "$COMMITS" | while read line; do echo "- $line"; done)
+
+          ### Installation
+
+          1. Download \`miner-${VERSION}.apk\`
+          2. Enable **Install from unknown sources** on your Android device
+          3. Install the APK and start mining
+
+          ### Requirements
+
+          - Android 5.0+ (API 21)
+          - ARM64 device
+
+          ---
+          *Built automatically with GitHub Actions*
+          EOF
+
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.check-version.outputs.version }}
+          name: "Шахтёр ${{ needs.check-version.outputs.version }}"
+          body_path: release_notes.md
+          files: "miner-${{ needs.check-version.outputs.version }}.apk"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
