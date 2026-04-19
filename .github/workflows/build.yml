@@ -61,6 +61,9 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Generate launcher icons
+        run: dart run flutter_launcher_icons
+
       - name: Verify code
         run: flutter analyze --no-fatal-infos
 
@@ -81,10 +84,8 @@ jobs:
           VERSION="${{ needs.check-version.outputs.version }}"
           DATE=$(date +'%Y-%m-%d')
 
-          # Get recent commits for changelog
           COMMITS=$(git log --oneline -10 --no-merges 2>/dev/null || echo "Initial release")
 
-          # Pick a random tagline to make each release description unique
           TAGLINES=(
             "New ore seams discovered. Time to mine!"
             "The tunnels go deeper. Resources await."
