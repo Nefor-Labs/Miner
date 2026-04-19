@@ -22,7 +22,6 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh pending every 30 seconds while screen is open
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       ref.read(baseProvider.notifier).refreshPending();
     });
@@ -41,17 +40,19 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
   Widget build(BuildContext context) {
     final base = ref.watch(baseProvider);
     final player = ref.watch(playerProvider);
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    final navHeight = 66 + 20 + bottomPad;
 
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ResourceBar(),
-            const Gap(20),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -64,48 +65,21 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
                         Text(
                           base.purchased
                               ? base.levelTitle
-                              : 'Купи базу и получай пассивный доход',
+                              : 'Пассивный доход пока ты отдыхаешь',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
                   ),
                   if (base.purchased)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [
-                          AppColors.iron.withOpacity(0.2),
-                          AppColors.iron.withOpacity(0.05),
-                        ]),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                            color: AppColors.iron.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.people_rounded,
-                              color: AppColors.iron, size: 14),
-                          const Gap(5),
-                          Text(
-                            '${base.workers} рабочих',
-                            style: const TextStyle(
-                              color: AppColors.iron,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _WorkerBadge(workers: base.workers),
                 ],
               ),
             ),
-            const Gap(20),
+            const Gap(16),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                padding: EdgeInsets.fromLTRB(20, 0, 20, navHeight + 8),
                 child: Column(
                   children: [
                     if (!base.purchased)
@@ -118,17 +92,17 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
                           .animate()
                           .fadeIn()
                           .slideY(begin: 0.15),
-                      const Gap(14),
+                      const Gap(12),
                       _CollectCard(base: base)
                           .animate(delay: 80.ms)
                           .fadeIn()
                           .slideY(begin: 0.15),
-                      const Gap(14),
+                      const Gap(12),
                       _UpgradeCard(base: base, player: player)
                           .animate(delay: 160.ms)
                           .fadeIn()
                           .slideY(begin: 0.15),
-                      const Gap(14),
+                      const Gap(12),
                       _WorkersCard(base: base)
                           .animate(delay: 240.ms)
                           .fadeIn()
@@ -145,6 +119,38 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
   }
 }
 
+class _WorkerBadge extends StatelessWidget {
+  final int workers;
+  const _WorkerBadge({required this.workers});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.iron.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppColors.iron.withOpacity(0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.people_rounded, color: AppColors.iron, size: 14),
+          const Gap(5),
+          Text(
+            '$workers рабочих',
+            style: const TextStyle(
+              color: AppColors.iron,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PurchaseCard extends ConsumerWidget {
   final dynamic player;
   const _PurchaseCard({required this.player});
@@ -156,63 +162,75 @@ class _PurchaseCard extends ConsumerWidget {
     return Container(
       decoration: AppDecorations.glowCard(
         canAfford ? AppColors.diamond : AppColors.cellBorder,
-        radius: 22,
+        radius: 24,
       ),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       child: Column(
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 88,
+            height: 88,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   AppColors.diamond.withOpacity(0.2),
-                  AppColors.accent,
+                  AppColors.diamond.withOpacity(0.05),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: AppColors.diamond.withOpacity(0.3)),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: AppColors.diamond.withOpacity(0.3)),
             ),
             child: const Icon(Icons.factory_rounded,
-                color: AppColors.diamond, size: 40),
+                color: AppColors.diamond, size: 42),
           ),
-          const Gap(16),
+          const Gap(18),
           Text(
             'Шахтёрская База',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 20,
-                ),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 21),
           ),
-          const Gap(6),
+          const Gap(8),
           Text(
-            'Нанимай рабочих, которые автоматически\nдобывают ресурсы пока ты не играешь',
+            'Нанимай рабочих — они добывают\nресурсы пока ты отдыхаешь',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const Gap(20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.diamond_rounded,
-                  color: AppColors.diamond, size: 18),
-              const Gap(6),
-              Text(
-                '500 алмазов',
-                style: TextStyle(
-                  color: canAfford
-                      ? AppColors.diamond
-                      : AppColors.mine,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
+          const Gap(22),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: canAfford
+                  ? AppColors.diamond.withOpacity(0.1)
+                  : AppColors.mine.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: canAfford
+                    ? AppColors.diamond.withOpacity(0.3)
+                    : AppColors.mine.withOpacity(0.3),
               ),
-            ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.diamond_rounded,
+                  color: canAfford ? AppColors.diamond : AppColors.mine,
+                  size: 18,
+                ),
+                const Gap(6),
+                Text(
+                  '500 алмазов',
+                  style: TextStyle(
+                    color: canAfford ? AppColors.diamond : AppColors.mine,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const Gap(16),
+          const Gap(18),
           SizedBox(
             width: double.infinity,
             child: GradientButton(
@@ -220,6 +238,7 @@ class _PurchaseCard extends ConsumerWidget {
                   ? () => ref.read(baseProvider.notifier).purchase()
                   : null,
               gradient: AppColors.diamondGradient,
+              radius: 16,
               child: const Text('КУПИТЬ БАЗУ'),
             ),
           ),
@@ -227,8 +246,7 @@ class _PurchaseCard extends ConsumerWidget {
             const Gap(8),
             Text(
               'Не хватает ${500 - player.diamonds} алмазов',
-              style: const TextStyle(
-                  color: AppColors.mine, fontSize: 12),
+              style: const TextStyle(color: AppColors.mine, fontSize: 12),
             ),
           ],
         ],
@@ -244,7 +262,7 @@ class _BaseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppDecorations.glassCard(radius: 20),
+      decoration: AppDecorations.glassCard(radius: 22),
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
@@ -255,17 +273,16 @@ class _BaseCard extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   AppColors.primary.withOpacity(0.2),
-                  AppColors.accent,
+                  AppColors.primary.withOpacity(0.05),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(18),
-              border:
-                  Border.all(color: AppColors.primary.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
             ),
-            child: const Icon(Icons.factory_rounded,
-                color: AppColors.primary, size: 32),
+            child:
+                const Icon(Icons.factory_rounded, color: AppColors.primary, size: 32),
           ),
           const Gap(16),
           Expanded(
@@ -279,9 +296,8 @@ class _BaseCard extends StatelessWidget {
                   'Уровень ${base.level} • ${base.workers} рабочих',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const Gap(8),
-                // Production per hour
-                _ProductionRow(base: base),
+                const Gap(10),
+                _ProductionChips(base: base),
               ],
             ),
           ),
@@ -291,9 +307,9 @@ class _BaseCard extends StatelessWidget {
   }
 }
 
-class _ProductionRow extends StatelessWidget {
+class _ProductionChips extends StatelessWidget {
   final BaseData base;
-  const _ProductionRow({required this.base});
+  const _ProductionChips({required this.base});
 
   @override
   Widget build(BuildContext context) {
@@ -305,11 +321,12 @@ class _ProductionRow extends StatelessWidget {
     final coMax = base.workers * BaseData.coalPerWorkerMax;
 
     return Wrap(
-      spacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: [
-        _ProdChip('💎', '$dMin-$dMax', AppColors.diamond),
-        _ProdChip('🪨', '$irMin-$irMax', AppColors.iron),
-        _ProdChip('⬛', '$coMin-$coMax', AppColors.coal),
+        _ProdChip('💎', '$dMin–$dMax/ч', AppColors.diamond),
+        _ProdChip('🪨', '$irMin–$irMax/ч', AppColors.iron),
+        _ProdChip('⬛', '$coMin–$coMax/ч', AppColors.coal),
       ],
     );
   }
@@ -317,30 +334,27 @@ class _ProductionRow extends StatelessWidget {
 
 class _ProdChip extends StatelessWidget {
   final String emoji;
-  final String range;
+  final String label;
   final Color color;
-  const _ProdChip(this.emoji, this.range, this.color);
+  const _ProdChip(this.emoji, this.label, this.color);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.25)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(emoji, style: const TextStyle(fontSize: 11)),
-          const Gap(3),
-          Text(range,
+          const Gap(4),
+          Text(label,
               style: TextStyle(
-                  color: color, fontSize: 11, fontWeight: FontWeight.w600)),
-          Text('/ч',
-              style: TextStyle(
-                  color: color.withOpacity(0.6), fontSize: 9)),
+                  color: color, fontSize: 11, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -361,7 +375,7 @@ class _CollectCard extends ConsumerWidget {
     return Container(
       decoration: AppDecorations.glowCard(
         hasPending ? AppColors.success : AppColors.cellBorder,
-        radius: 20,
+        radius: 22,
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -370,11 +384,12 @@ class _CollectCard extends ConsumerWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.success.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.success.withOpacity(0.25)),
                 ),
                 child: const Icon(Icons.inventory_2_rounded,
                     color: AppColors.success, size: 22),
@@ -388,13 +403,12 @@ class _CollectCard extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleLarge),
                     Text(
                       isFull
-                          ? 'Склад полон! Срочно забери ресурсы'
-                          : 'Заполнится через ${hoursLeft.toStringAsFixed(1)}ч',
+                          ? 'Склад полон — срочно забери!'
+                          : 'До заполнения ${hoursLeft.toStringAsFixed(1)}ч',
                       style: TextStyle(
-                        color: isFull
-                            ? AppColors.mine
-                            : AppColors.textSecondary,
+                        color: isFull ? AppColors.mine : AppColors.textSecondary,
                         fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -416,12 +430,10 @@ class _CollectCard extends ConsumerWidget {
                     ? () => ref.read(baseProvider.notifier).collect()
                     : null,
                 gradient: AppColors.successGradient,
-                radius: 12,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
+                radius: 14,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 child: const Text('СОБРАТЬ',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700)),
+                    style: TextStyle(fontSize: 13, letterSpacing: 1)),
               ),
             ],
           ),
@@ -440,14 +452,13 @@ class _PendingChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
         color: amount > 0 ? color.withOpacity(0.12) : AppColors.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-            color: amount > 0
-                ? color.withOpacity(0.35)
-                : AppColors.cellBorder),
+          color: amount > 0 ? color.withOpacity(0.35) : AppColors.cellBorder,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -459,7 +470,7 @@ class _PendingChip extends StatelessWidget {
             style: TextStyle(
               color: amount > 0 ? color : AppColors.textSecondary,
               fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -489,15 +500,20 @@ class _UpgradeCard extends ConsumerWidget {
         borderColor: canAfford
             ? AppColors.primary.withOpacity(0.4)
             : AppColors.cellBorder,
-        radius: 20,
         shadows: canAfford
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.12),
-                  blurRadius: 16,
-                )
+                  color: AppColors.primary.withOpacity(0.15),
+                  blurRadius: 20,
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.35),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
               ]
             : null,
+        radius: 22,
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -506,11 +522,12 @@ class _UpgradeCard extends ConsumerWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.25)),
                 ),
                 child: const Icon(Icons.upgrade_rounded,
                     color: AppColors.primary, size: 22),
@@ -522,10 +539,8 @@ class _UpgradeCard extends ConsumerWidget {
                   children: [
                     Text('Улучшить до Ур.$next',
                         style: Theme.of(context).textTheme.titleLarge),
-                    Text(
-                      '+1 рабочий • больше ресурсов/ч',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    Text('+1 рабочий · больше ресурсов/ч',
+                        style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
@@ -549,12 +564,10 @@ class _UpgradeCard extends ConsumerWidget {
                     ? () => ref.read(baseProvider.notifier).upgrade()
                     : null,
                 gradient: AppColors.primaryGradient,
-                radius: 12,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
+                radius: 14,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 child: const Text('УЛУЧШИТЬ',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700)),
+                    style: TextStyle(fontSize: 13, letterSpacing: 1)),
               ),
             ],
           ),
@@ -571,30 +584,40 @@ class _CostItem extends StatelessWidget {
   final Color color;
   const _CostItem(this.emoji, this.cost, this.have, this.color);
 
-  @override
-  Widget build(BuildContext context) {
-    final ok = have >= cost;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 13)),
-        const Gap(3),
-        Text(
-          _format(cost),
-          style: TextStyle(
-            color: ok ? color : AppColors.mine,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _format(int n) {
+  String _fmt(int n) {
     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
     return '$n';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ok = have >= cost;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: ok ? color.withOpacity(0.08) : AppColors.mine.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ok ? color.withOpacity(0.25) : AppColors.mine.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 12)),
+          const Gap(3),
+          Text(
+            _fmt(cost),
+            style: TextStyle(
+              color: ok ? color : AppColors.mine,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -605,27 +628,47 @@ class _WorkersCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppDecorations.glassCard(radius: 20),
+      decoration: AppDecorations.glassCard(radius: 22),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Рабочие',
-              style: Theme.of(context).textTheme.titleLarge),
-          const Gap(12),
+          Row(
+            children: [
+              Text('Рабочие', style: Theme.of(context).textTheme.titleLarge),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.iron.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.iron.withOpacity(0.2)),
+                ),
+                child: Text(
+                  '${base.workers} / ${base.workers}',
+                  style: const TextStyle(
+                    color: AppColors.iron,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Gap(14),
           Wrap(
             spacing: 10,
             runSpacing: 10,
             children: List.generate(
               base.workers,
-              (i) => _WorkerBubble(index: i + 1)
-                  .animate(delay: (i * 60).ms)
+              (i) => _WorkerTile(index: i + 1)
+                  .animate(delay: (i * 50).ms)
                   .scale(
                     begin: const Offset(0.5, 0.5),
-                    duration: 300.ms,
+                    duration: 350.ms,
                     curve: Curves.elasticOut,
                   )
-                  .fadeIn(),
+                  .fadeIn(duration: 200.ms),
             ),
           ),
         ],
@@ -634,26 +677,26 @@ class _WorkersCard extends StatelessWidget {
   }
 }
 
-class _WorkerBubble extends StatelessWidget {
+class _WorkerTile extends StatelessWidget {
   final int index;
-  const _WorkerBubble({required this.index});
+  const _WorkerTile({required this.index});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 52,
-      height: 52,
+      width: 54,
+      height: 54,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.iron.withOpacity(0.2),
-            AppColors.accent,
+            AppColors.iron.withOpacity(0.18),
+            AppColors.iron.withOpacity(0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.iron.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.iron.withOpacity(0.25)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -664,7 +707,7 @@ class _WorkerBubble extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 9,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
