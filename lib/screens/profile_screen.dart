@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import '../models/resource_type.dart';
 import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/resource_icon.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -19,9 +21,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _nicknameCtrl = TextEditingController(
-      text: ref.read(playerProvider).nickname,
-    );
+    _nicknameCtrl =
+        TextEditingController(text: ref.read(playerProvider).nickname);
   }
 
   @override
@@ -49,10 +50,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'PROFILE',
-                style: Theme.of(context).textTheme.displayLarge,
-              ).animate().fadeIn().slideY(begin: -0.3),
+              Text('ПРОФИЛЬ',
+                      style: Theme.of(context).textTheme.displayLarge)
+                  .animate()
+                  .fadeIn()
+                  .slideY(begin: -0.3),
               const Gap(24),
               _AvatarSection(
                 player: player,
@@ -62,36 +64,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 onSave: _saveNickname,
               ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.2),
               const Gap(24),
-              Text(
-                'RESOURCES',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      letterSpacing: 2,
-                    ),
-              ),
+              _sectionLabel(context, 'РЕСУРСЫ'),
               const Gap(8),
               _ResourceGrid(player: player)
                   .animate(delay: 200.ms)
                   .fadeIn()
                   .slideY(begin: 0.2),
               const Gap(24),
-              Text(
-                'STATISTICS',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      letterSpacing: 2,
-                    ),
-              ),
+              _sectionLabel(context, 'СТАТИСТИКА'),
               const Gap(8),
               _StatsGrid(player: player)
                   .animate(delay: 300.ms)
                   .fadeIn()
                   .slideY(begin: 0.2),
               const Gap(24),
-              Text(
-                'UPGRADES',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      letterSpacing: 2,
-                    ),
-              ),
+              _sectionLabel(context, 'УЛУЧШЕНИЯ'),
               const Gap(8),
               _UpgradesRow(player: player)
                   .animate(delay: 400.ms)
@@ -103,6 +90,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
+
+  Widget _sectionLabel(BuildContext context, String text) => Text(
+        text,
+        style: Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.copyWith(letterSpacing: 2),
+      );
 }
 
 class _AvatarSection extends StatelessWidget {
@@ -140,7 +135,8 @@ class _AvatarSection extends StatelessWidget {
               border: Border.all(color: AppColors.primary, width: 2),
             ),
             child: const Center(
-              child: Text('⛏', style: TextStyle(fontSize: 28)),
+              child: Icon(Icons.hardware_rounded,
+                  color: AppColors.iron, size: 30),
             ),
           ),
           const Gap(16),
@@ -161,7 +157,7 @@ class _AvatarSection extends StatelessWidget {
                           decoration: const InputDecoration(
                             counterText: '',
                             border: InputBorder.none,
-                            hintText: 'Enter nickname',
+                            hintText: 'Введите ник',
                             hintStyle:
                                 TextStyle(color: AppColors.textSecondary),
                           ),
@@ -170,10 +166,8 @@ class _AvatarSection extends StatelessWidget {
                       ),
                       IconButton(
                         onPressed: onSave,
-                        icon: const Icon(
-                          Icons.check_circle,
-                          color: AppColors.success,
-                        ),
+                        icon: const Icon(Icons.check_circle,
+                            color: AppColors.success),
                       ),
                     ],
                   )
@@ -182,7 +176,7 @@ class _AvatarSection extends StatelessWidget {
                     children: [
                       Text(
                         player.nickname.isEmpty
-                            ? 'Anonymous Miner'
+                            ? 'Безымянный шахтёр'
                             : player.nickname,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
@@ -190,21 +184,16 @@ class _AvatarSection extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Text(
-                        'Miner since launch',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
+                      Text('Шахтёр',
+                          style: Theme.of(context).textTheme.bodyMedium),
                     ],
                   ),
           ),
           if (!editing)
             IconButton(
               onPressed: onEdit,
-              icon: const Icon(
-                Icons.edit_rounded,
-                color: AppColors.textSecondary,
-                size: 20,
-              ),
+              icon: const Icon(Icons.edit_rounded,
+                  color: AppColors.textSecondary, size: 20),
             ),
         ],
       ),
@@ -214,30 +203,78 @@ class _AvatarSection extends StatelessWidget {
 
 class _ResourceGrid extends StatelessWidget {
   final dynamic player;
-
   const _ResourceGrid({required this.player});
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: 1.5,
+    return Row(
       children: [
-        _StatCard('💎', 'Diamonds', '${player.diamonds}', AppColors.diamond),
-        _StatCard('🪨', 'Iron', '${player.iron}', AppColors.iron),
-        _StatCard('⬛', 'Coal', '${player.coal}', AppColors.coal),
+        Expanded(
+          child: _ResCard(
+              ResourceType.diamond, 'Алмазы', '${player.diamonds}'),
+        ),
+        const Gap(10),
+        Expanded(
+          child: _ResCard(ResourceType.iron, 'Железо', '${player.iron}'),
+        ),
+        const Gap(10),
+        Expanded(
+          child: _ResCard(ResourceType.coal, 'Уголь', '${player.coal}'),
+        ),
       ],
+    );
+  }
+}
+
+class _ResCard extends StatelessWidget {
+  final ResourceType type;
+  final String label;
+  final String value;
+
+  const _ResCard(this.type, this.label, this.value);
+
+  Color get _color {
+    switch (type) {
+      case ResourceType.diamond:
+        return AppColors.diamond;
+      case ResourceType.iron:
+        return AppColors.iron;
+      case ResourceType.coal:
+        return AppColors.coal;
+      default:
+        return AppColors.mine;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _color.withOpacity(0.25)),
+      ),
+      child: Column(
+        children: [
+          ResourceIcon(type: type, size: 36),
+          const Gap(6),
+          Text(label,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 11)),
+          Text(
+            value,
+            style: TextStyle(
+                color: _color, fontSize: 20, fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _StatsGrid extends StatelessWidget {
   final dynamic player;
-
   const _StatsGrid({required this.player});
 
   @override
@@ -250,13 +287,14 @@ class _StatsGrid extends StatelessWidget {
       mainAxisSpacing: 10,
       childAspectRatio: 2,
       children: [
-        _StatCard('🎮', 'Games', '${player.gamesPlayed}', AppColors.primary),
-        _StatCard('🏆', 'Best Score', '${player.bestRoundScore}',
-            AppColors.success),
-        _StatCard('📊', 'Total Score', '${player.totalScore}',
-            AppColors.diamond),
-        _StatCard('🛡', 'Mines Defused', '${player.minesDefused}',
-            AppColors.iron),
+        _StatCard(Icons.videogame_asset_rounded, 'Игр сыграно',
+            '${player.gamesPlayed}', AppColors.primary),
+        _StatCard(Icons.emoji_events_rounded, 'Лучший счёт',
+            '${player.bestRoundScore}', AppColors.success),
+        _StatCard(Icons.bar_chart_rounded, 'Всего очков',
+            '${player.totalScore}', AppColors.diamond),
+        _StatCard(Icons.shield_rounded, 'Мин обезврежено',
+            '${player.minesDefused}', AppColors.iron),
       ],
     );
   }
@@ -264,7 +302,6 @@ class _StatsGrid extends StatelessWidget {
 
 class _UpgradesRow extends StatelessWidget {
   final dynamic player;
-
   const _UpgradesRow({required this.player});
 
   @override
@@ -272,19 +309,18 @@ class _UpgradesRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _StatCard(
-              '⛏', 'Pickaxe', 'Lvl ${player.pickaxeLevel}', AppColors.iron),
+          child: _StatCard(Icons.hardware_rounded, 'Кирка',
+              'Ур.${player.pickaxeLevel}', AppColors.iron),
         ),
         const Gap(10),
         Expanded(
-          child: _StatCard(
-              '⚡', 'Multiplier', 'x${player.bonusMultiplier}',
-              AppColors.primary),
+          child: _StatCard(Icons.bolt_rounded, 'Множитель',
+              'x${player.bonusMultiplier}', AppColors.primary),
         ),
         const Gap(10),
         Expanded(
-          child: _StatCard(
-              '🛡', 'Shields', '${player.shieldCharges}', AppColors.success),
+          child: _StatCard(Icons.shield_rounded, 'Щиты',
+              '${player.shieldCharges}', AppColors.success),
         ),
       ],
     );
@@ -292,12 +328,12 @@ class _UpgradesRow extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String label;
   final String value;
   final Color color;
 
-  const _StatCard(this.emoji, this.label, this.value, this.color);
+  const _StatCard(this.icon, this.label, this.value, this.color);
 
   @override
   Widget build(BuildContext context) {
@@ -314,16 +350,15 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 14)),
+              Icon(icon, color: AppColors.textSecondary, size: 14),
               const Gap(4),
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
-                    letterSpacing: 0.5,
-                  ),
+                  style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                      letterSpacing: 0.5),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -333,10 +368,7 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: color,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
+                color: color, fontSize: 18, fontWeight: FontWeight.w800),
           ),
         ],
       ),
