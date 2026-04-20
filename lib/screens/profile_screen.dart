@@ -7,6 +7,55 @@ import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/resource_icon.dart';
 
+// ─── Rank helpers ─────────────────────────────────────────────────────────────
+
+String _rankTitle(int games) {
+  if (games >= 500) return 'АБСОЛЮТ';
+  if (games >= 200) return 'ЛЕГЕНДА';
+  if (games >= 100) return 'МАСТЕР';
+  if (games >= 60) return 'ЭКСПЕРТ';
+  if (games >= 30) return 'ГОРНЯК';
+  if (games >= 10) return 'ШАХТЁР';
+  return 'НОВИЧОК';
+}
+
+Color _rankColor(int games) {
+  if (games >= 500) return AppColors.diamond;
+  if (games >= 200) return AppColors.gold;
+  if (games >= 100) return AppColors.primary;
+  if (games >= 60) return AppColors.success;
+  if (games >= 30) return AppColors.iron;
+  return AppColors.textSecondary;
+}
+
+int _nextRankThreshold(int games) {
+  if (games < 10) return 10;
+  if (games < 30) return 30;
+  if (games < 60) return 60;
+  if (games < 100) return 100;
+  if (games < 200) return 200;
+  if (games < 500) return 500;
+  return 500;
+}
+
+int _prevRankThreshold(int games) {
+  if (games < 10) return 0;
+  if (games < 30) return 10;
+  if (games < 60) return 30;
+  if (games < 100) return 60;
+  if (games < 200) return 100;
+  if (games < 500) return 200;
+  return 200;
+}
+
+String _formatNum(int n) {
+  if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+  if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+  return '$n';
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
+
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -68,100 +117,103 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const Gap(16),
 
-              _AvatarCard(
+              _HeroCard(
                 player: player,
                 editing: _editing,
                 controller: _ctrl,
                 onEdit: () => setState(() => _editing = true),
                 onSave: _save,
-              ).animate(delay: 80.ms).fadeIn().slideY(begin: 0.15),
+              ).animate(delay: 80.ms).fadeIn().slideY(begin: 0.1),
 
-              const Gap(16),
+              const Gap(20),
               _SectionLabel('РЕСУРСЫ'),
               const Gap(8),
 
               Row(
                 children: [
                   Expanded(
-                    child: _ResCard(ResourceType.diamond, 'Алмазы',
-                        '${player.diamonds}'),
+                    child: _ResCard(
+                      ResourceType.diamond, 'Алмазы',
+                      _formatNum(player.diamonds),
+                    ),
                   ),
                   const Gap(8),
                   Expanded(
-                    child:
-                        _ResCard(ResourceType.iron, 'Железо', '${player.iron}'),
+                    child: _ResCard(
+                      ResourceType.iron, 'Железо',
+                      _formatNum(player.iron),
+                    ),
                   ),
                   const Gap(8),
                   Expanded(
-                    child:
-                        _ResCard(ResourceType.coal, 'Уголь', '${player.coal}'),
+                    child: _ResCard(
+                      ResourceType.coal, 'Уголь',
+                      _formatNum(player.coal),
+                    ),
                   ),
                 ],
-              ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.15),
+              ).animate(delay: 160.ms).fadeIn().slideY(begin: 0.12),
 
-              const Gap(16),
+              const Gap(20),
               _SectionLabel('СТАТИСТИКА'),
               const Gap(8),
 
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 2.5,
+              Column(
                 children: [
-                  _StatCard(Icons.videogame_asset_rounded, 'Игр сыграно',
-                      '${player.gamesPlayed}', AppColors.primary),
-                  _StatCard(Icons.emoji_events_rounded, 'Лучший счёт',
-                      '${player.bestRoundScore}', AppColors.gold),
-                  _StatCard(Icons.bar_chart_rounded, 'Всего очков',
-                      '${player.totalScore}', AppColors.diamond),
-                  _StatCard(Icons.shield_rounded, 'Мин обезврежено',
-                      '${player.minesDefused}', AppColors.success),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          Icons.videogame_asset_rounded,
+                          'Игр сыграно',
+                          _formatNum(player.gamesPlayed),
+                          AppColors.primary,
+                        ),
+                      ),
+                      const Gap(10),
+                      Expanded(
+                        child: _StatCard(
+                          Icons.emoji_events_rounded,
+                          'Лучший раунд',
+                          _formatNum(player.bestRoundScore),
+                          AppColors.gold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Gap(10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          Icons.bar_chart_rounded,
+                          'Всего очков',
+                          _formatNum(player.totalScore),
+                          AppColors.diamond,
+                        ),
+                      ),
+                      const Gap(10),
+                      Expanded(
+                        child: _StatCard(
+                          Icons.shield_rounded,
+                          'Мин обезврежено',
+                          '${player.minesDefused}',
+                          AppColors.success,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              ).animate(delay: 220.ms).fadeIn().slideY(begin: 0.15),
+              ).animate(delay: 230.ms).fadeIn().slideY(begin: 0.12),
 
-              const Gap(16),
+              const Gap(20),
               _SectionLabel('СНАРЯЖЕНИЕ'),
               const Gap(8),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _GearCard(
-                      icon: Icons.hardware_rounded,
-                      label: 'Кирка',
-                      value: 'Ур.${player.pickaxeLevel}',
-                      color: AppColors.iron,
-                      maxValue: 5,
-                      currentValue: player.pickaxeLevel,
-                    ),
-                  ),
-                  const Gap(8),
-                  Expanded(
-                    child: _GearCard(
-                      icon: Icons.bolt_rounded,
-                      label: 'Множитель',
-                      value: '×${player.bonusMultiplier}',
-                      color: AppColors.primary,
-                      maxValue: 3,
-                      currentValue: player.bonusMultiplier,
-                    ),
-                  ),
-                  const Gap(8),
-                  Expanded(
-                    child: _GearCard(
-                      icon: Icons.shield_rounded,
-                      label: 'Щиты',
-                      value: '${player.shieldCharges}',
-                      color: AppColors.success,
-                      maxValue: null,
-                      currentValue: null,
-                    ),
-                  ),
-                ],
-              ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.15),
+              _GearSection(player: player)
+                  .animate(delay: 300.ms)
+                  .fadeIn()
+                  .slideY(begin: 0.12),
             ],
           ),
         ),
@@ -170,33 +222,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
+// ─── Section label ────────────────────────────────────────────────────────────
+
 class _SectionLabel extends StatelessWidget {
   final String text;
   const _SectionLabel(this.text);
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 0),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: AppColors.textSecondary.withOpacity(0.6),
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2.5,
+  Widget build(BuildContext context) => Row(
+        children: [
+          Container(
+            width: 3,
+            height: 12,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-        ),
+          const Gap(8),
+          Text(
+            text,
+            style: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.7),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2.5,
+            ),
+          ),
+        ],
       );
 }
 
-class _AvatarCard extends StatelessWidget {
+// ─── Hero card ────────────────────────────────────────────────────────────────
+
+class _HeroCard extends StatelessWidget {
   final dynamic player;
   final bool editing;
   final TextEditingController controller;
   final VoidCallback onEdit;
   final VoidCallback onSave;
 
-  const _AvatarCard({
+  const _HeroCard({
     required this.player,
     required this.editing,
     required this.controller,
@@ -206,92 +272,177 @@ class _AvatarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final games = player.gamesPlayed as int;
+    final level = games ~/ 10 + 1;
+    final rank = _rankTitle(games);
+    final rankColor = _rankColor(games);
+    final prev = _prevRankThreshold(games);
+    final next = _nextRankThreshold(games);
+    final progress =
+        games >= 500 ? 1.0 : (games - prev) / (next - prev).toDouble();
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1C1630), Color(0xFF111420)],
+          colors: [
+            rankColor.withOpacity(0.14),
+            const Color(0xFF0E1020),
+            AppColors.primary.withOpacity(0.07),
+          ],
+          stops: const [0.0, 0.55, 1.0],
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withOpacity(0.35)),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: rankColor.withOpacity(0.4), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.15),
-            blurRadius: 24,
+            color: rankColor.withOpacity(0.14),
+            blurRadius: 28,
             spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Row(
+      child: Stack(
         children: [
-          Stack(
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primary.withOpacity(0.35),
-                      AppColors.accent,
-                    ],
-                  ),
-                  border: Border.all(
-                      color: AppColors.primary.withOpacity(0.5), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 16,
+          // Decorative background circles
+          Positioned(
+            top: -30,
+            right: -30,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: rankColor.withOpacity(0.08), width: 2),
+              ),
+            ),
+          ),
+          Positioned(
+            top: -10,
+            right: -10,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: rankColor.withOpacity(0.12), width: 1),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -40,
+            left: -40,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: AppColors.primary.withOpacity(0.06), width: 2),
+              ),
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                // Avatar
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Outer glow ring
+                    Container(
+                      width: 92,
+                      height: 92,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: rankColor.withOpacity(0.35), width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: rankColor.withOpacity(0.25),
+                            blurRadius: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Avatar circle
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            rankColor.withOpacity(0.28),
+                            AppColors.accent,
+                          ],
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.hardware_rounded,
+                            color: AppColors.iron, size: 40),
+                      ),
+                    ),
+                    // Level badge
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.goldGradient,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.bg, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.gold.withOpacity(0.4),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'Ур.$level',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                child: const Center(
-                  child: Icon(Icons.hardware_rounded,
-                      color: AppColors.iron, size: 34),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    gradient: AppColors.goldGradient,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.bg, width: 2),
-                  ),
-                  child: Text(
-                    'Ур.${(player.gamesPlayed ~/ 10 + 1)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Gap(16),
-          Expanded(
-            child: editing
-                ? Row(
+
+                const Gap(14),
+
+                // Name + edit
+                if (editing) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
+                      Flexible(
                         child: TextField(
                           controller: controller,
                           autofocus: true,
                           maxLength: 20,
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: AppColors.textPrimary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
                           ),
                           decoration: const InputDecoration(
                             counterText: '',
@@ -309,9 +460,10 @@ class _AvatarCard extends StatelessWidget {
                             color: AppColors.success, size: 28),
                       ),
                     ],
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ] else ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         player.nickname.isEmpty
@@ -319,65 +471,234 @@ class _AvatarCard extends StatelessWidget {
                             : player.nickname,
                         style: const TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 20,
+                          fontSize: 22,
                           fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const Gap(4),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.25)),
-                            ),
-                            child: const Text(
-                              'Шахтёр',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                      const Gap(8),
+                      GestureDetector(
+                        onTap: onEdit,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: AppColors.cardLight,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.cellBorder),
                           ),
-                          const Gap(6),
-                          Text(
-                            '${player.gamesPlayed} игр',
-                            style: TextStyle(
-                              color: AppColors.textSecondary.withOpacity(0.6),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                          child: const Icon(Icons.edit_rounded,
+                              color: AppColors.textSecondary, size: 14),
+                        ),
                       ),
                     ],
                   ),
-          ),
-          if (!editing)
-            GestureDetector(
-              onTap: onEdit,
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.cardLight,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.cellBorder),
+                ],
+
+                const Gap(8),
+
+                // Rank badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: rankColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: rankColor.withOpacity(0.4)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: rankColor.withOpacity(0.15),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.military_tech_rounded,
+                          color: rankColor, size: 13),
+                      const Gap(5),
+                      Text(
+                        rank,
+                        style: TextStyle(
+                          color: rankColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: const Icon(Icons.edit_rounded,
-                    color: AppColors.textSecondary, size: 16),
-              ),
+
+                const Gap(18),
+
+                // Progress bar to next rank
+                Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'ДО СЛЕДУЮЩЕГО РАНГА',
+                          style: TextStyle(
+                            color: AppColors.textSecondary.withOpacity(0.55),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        if (games < 500)
+                          Text(
+                            '$games / $next',
+                            style: TextStyle(
+                              color: rankColor.withOpacity(0.85),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          )
+                        else
+                          Text(
+                            'МАКСИМУМ',
+                            style: TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const Gap(7),
+                    Stack(
+                      children: [
+                        Container(
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: AppColors.cellBorder.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: progress.clamp(0.0, 1.0),
+                          child: Container(
+                            height: 7,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [rankColor, rankColor.withOpacity(0.5)],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: rankColor.withOpacity(0.5),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const Gap(18),
+
+                // Divider
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [
+                      Colors.transparent,
+                      AppColors.cellBorder.withOpacity(0.6),
+                      Colors.transparent,
+                    ]),
+                  ),
+                ),
+
+                const Gap(16),
+
+                // Bottom quick stats
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _MiniStat(
+                      Icons.videogame_asset_rounded,
+                      'ИГРЫ',
+                      _formatNum(player.gamesPlayed),
+                      AppColors.primary,
+                    ),
+                    Container(
+                        width: 1,
+                        height: 32,
+                        color: AppColors.cellBorder.withOpacity(0.4)),
+                    _MiniStat(
+                      Icons.emoji_events_rounded,
+                      'РЕКОРД',
+                      _formatNum(player.bestRoundScore),
+                      AppColors.gold,
+                    ),
+                    Container(
+                        width: 1,
+                        height: 32,
+                        color: AppColors.cellBorder.withOpacity(0.4)),
+                    _MiniStat(
+                      Icons.bar_chart_rounded,
+                      'ОЧКИ',
+                      _formatNum(player.totalScore),
+                      AppColors.diamond,
+                    ),
+                  ],
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );
   }
 }
+
+class _MiniStat extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  const _MiniStat(this.icon, this.label, this.value, this.color);
+
+  @override
+  Widget build(BuildContext context) => Column(
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color.withOpacity(0.7), size: 11),
+              const Gap(4),
+              Text(
+                label,
+                style: TextStyle(
+                  color: AppColors.textSecondary.withOpacity(0.55),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1,
+                ),
+              ),
+            ],
+          ),
+          const Gap(3),
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      );
+}
+
+// ─── Resource cards ───────────────────────────────────────────────────────────
 
 class _ResCard extends StatelessWidget {
   final ResourceType type;
@@ -395,46 +716,64 @@ class _ResCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            _color.withOpacity(0.1),
+            _color.withOpacity(0.12),
             _color.withOpacity(0.02),
           ],
         ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _color.withOpacity(0.28)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _color.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-              color: _color.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4)),
+            color: _color.withOpacity(0.1),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
         children: [
-          ResourceIcon(type: type, size: 28),
-          const Gap(8),
-          Text(label,
-              style: TextStyle(
-                  color: AppColors.textSecondary.withOpacity(0.7),
-                  fontSize: 9,
-                  letterSpacing: 0.5,
-                  fontWeight: FontWeight.w600)),
-          const Gap(2),
-          Text(value,
-              style: TextStyle(
-                  color: _color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900)),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _color.withOpacity(0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: _color.withOpacity(0.2)),
+            ),
+            child: Center(child: ResourceIcon(type: type, size: 24)),
+          ),
+          const Gap(10),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.65),
+              fontSize: 9,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const Gap(3),
+          Text(
+            value,
+            style: TextStyle(
+              color: _color,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ),
     );
   }
 }
+
+// ─── Stat cards ───────────────────────────────────────────────────────────────
 
 class _StatCard extends StatelessWidget {
   final IconData icon;
@@ -446,44 +785,244 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [color.withOpacity(0.1), color.withOpacity(0.02)],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.22)),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withOpacity(0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.14),
-              borderRadius: BorderRadius.circular(10),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withOpacity(0.22), color.withOpacity(0.06)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: color.withOpacity(0.25)),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const Gap(10),
+          const Gap(12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label,
-                    style: TextStyle(
-                        color: AppColors.textSecondary.withOpacity(0.7),
-                        fontSize: 10,
-                        letterSpacing: 0.3),
-                    overflow: TextOverflow.ellipsis),
-                Text(value,
-                    style: TextStyle(
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.textSecondary.withOpacity(0.65),
+                    fontSize: 10,
+                    letterSpacing: 0.3,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Gap(2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Gear section ─────────────────────────────────────────────────────────────
+
+class _GearSection extends StatelessWidget {
+  final dynamic player;
+  const _GearSection({required this.player});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Pickaxe — full width with progress bar
+        _PickaxeCard(
+          level: player.pickaxeLevel as int,
+          maxLevel: 15,
+        ),
+        const Gap(10),
+        Row(
+          children: [
+            Expanded(
+              child: _GearCard(
+                icon: Icons.bolt_rounded,
+                label: 'Множитель',
+                value: '×${player.bonusMultiplier}',
+                color: AppColors.primary,
+                maxValue: 3,
+                currentValue: player.bonusMultiplier as int,
+              ),
+            ),
+            const Gap(10),
+            Expanded(
+              child: _GearCard(
+                icon: Icons.shield_rounded,
+                label: 'Щиты',
+                value: '${player.shieldCharges}',
+                color: AppColors.success,
+                maxValue: null,
+                currentValue: null,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _PickaxeCard extends StatelessWidget {
+  final int level;
+  final int maxLevel;
+  const _PickaxeCard({required this.level, required this.maxLevel});
+
+  @override
+  Widget build(BuildContext context) {
+    final isMaxed = level >= maxLevel;
+    final color = isMaxed ? AppColors.gold : AppColors.iron;
+    final progress = level / maxLevel;
+
+    final names = [
+      '', // 0 unused
+      'Деревянная', 'Железная', 'Золотая', 'Алмазная',
+      'Мифическая', 'Рунная', 'Дух', 'Небесная',
+      'Гром', 'Легендарная', 'Вечность', 'Хаос',
+      'Дракон', 'Богов', 'Абсолюта',
+    ];
+    final name = level < names.length ? names[level] : 'Ур.$level';
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [color.withOpacity(0.12), color.withOpacity(0.02)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+            color: isMaxed
+                ? AppColors.gold.withOpacity(0.5)
+                : color.withOpacity(0.28)),
+        boxShadow: isMaxed
+            ? [
+                BoxShadow(
+                    color: AppColors.gold.withOpacity(0.18), blurRadius: 20)
+              ]
+            : [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4))
+              ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withOpacity(0.25), color.withOpacity(0.06)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: color.withOpacity(0.35)),
+            ),
+            child: Icon(Icons.hardware_rounded, color: color, size: 26),
+          ),
+          const Gap(14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Кирка "$name"',
+                      style: TextStyle(
                         color: color,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(isMaxed ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: color.withOpacity(0.35)),
+                      ),
+                      child: Text(
+                        isMaxed ? 'МАКС' : 'Ур.$level / $maxLevel',
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(8),
+                Stack(
+                  children: [
+                    Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppColors.cellBorder.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    FractionallySizedBox(
+                      widthFactor: progress,
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [color, color.withOpacity(0.5)],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                                color: color.withOpacity(0.5), blurRadius: 6)
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -513,53 +1052,95 @@ class _GearCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMaxed = maxValue != null && currentValue == maxValue;
+    final effectiveColor = isMaxed ? AppColors.gold : color;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.1), color.withOpacity(0.02)],
+          colors: [
+            effectiveColor.withOpacity(0.12),
+            effectiveColor.withOpacity(0.02),
+          ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
             color: isMaxed
-                ? AppColors.gold.withOpacity(0.4)
-                : color.withOpacity(0.22)),
+                ? AppColors.gold.withOpacity(0.45)
+                : color.withOpacity(0.25)),
         boxShadow: isMaxed
             ? [
                 BoxShadow(
-                  color: AppColors.gold.withOpacity(0.12),
-                  blurRadius: 12,
-                )
+                    color: AppColors.gold.withOpacity(0.14), blurRadius: 14)
               ]
             : null,
       ),
       child: Column(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: (isMaxed ? AppColors.gold : color).withOpacity(0.14),
-              borderRadius: BorderRadius.circular(10),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  effectiveColor.withOpacity(0.22),
+                  effectiveColor.withOpacity(0.06),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: effectiveColor.withOpacity(0.3)),
             ),
-            child: Icon(icon,
-                color: isMaxed ? AppColors.gold : color, size: 18),
+            child: Icon(icon, color: effectiveColor, size: 20),
           ),
-          const Gap(6),
-          Text(label,
-              style: TextStyle(
-                  color: AppColors.textSecondary.withOpacity(0.6),
-                  fontSize: 9,
-                  letterSpacing: 0.3),
-              overflow: TextOverflow.ellipsis),
-          Text(isMaxed ? 'МАКС' : value,
-              style: TextStyle(
-                  color: isMaxed ? AppColors.gold : color,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900)),
+          const Gap(8),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.6),
+              fontSize: 10,
+              letterSpacing: 0.3,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Gap(3),
+          Text(
+            isMaxed ? 'МАКС' : value,
+            style: TextStyle(
+              color: effectiveColor,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          if (maxValue != null && currentValue != null && !isMaxed) ...[
+            const Gap(6),
+            Stack(
+              children: [
+                Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.cellBorder.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: currentValue! / maxValue!,
+                  child: Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                          colors: [color, color.withOpacity(0.5)]),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
