@@ -19,7 +19,6 @@ class QuestsScreen extends ConsumerWidget {
     final mins = minutes % 60;
     final timeStr = hours > 0 ? '${hours}ч ${mins}м' : '${mins}м';
 
-    final allClaimed = state.quests.every((q) => q.rewardClaimed);
     final completedCount = state.quests.where((q) => q.completed).length;
 
     return Container(
