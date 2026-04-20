@@ -122,7 +122,6 @@ ThemeData buildAppTheme() {
     brightness: Brightness.dark,
     scaffoldBackgroundColor: AppColors.bg,
     colorScheme: const ColorScheme.dark(
-      surface: AppColors.bg,
       surface: AppColors.surface,
       primary: AppColors.primary,
       secondary: AppColors.diamond,
