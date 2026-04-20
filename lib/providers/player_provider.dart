@@ -96,6 +96,37 @@ class PlayerNotifier extends Notifier<PlayerData> {
     _save();
   }
 
+  void addResourcesDirect({int diamonds = 0, int iron = 0, int coal = 0}) {
+    state = _copyWith(
+      diamonds: state.diamonds + diamonds,
+      iron: state.iron + iron,
+      coal: state.coal + coal,
+    );
+    _save();
+  }
+
+  bool exchangeResources({
+    int spendDiamond = 0,
+    int spendIron = 0,
+    int spendCoal = 0,
+    int gainDiamond = 0,
+    int gainIron = 0,
+    int gainCoal = 0,
+  }) {
+    if (state.diamonds < spendDiamond ||
+        state.iron < spendIron ||
+        state.coal < spendCoal) {
+      return false;
+    }
+    state = _copyWith(
+      diamonds: state.diamonds - spendDiamond + gainDiamond,
+      iron: state.iron - spendIron + gainIron,
+      coal: state.coal - spendCoal + gainCoal,
+    );
+    _save();
+    return true;
+  }
+
   PlayerData _copyWith({
     String? nickname,
     int? diamonds,

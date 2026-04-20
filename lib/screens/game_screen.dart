@@ -8,7 +8,9 @@ import '../providers/player_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cell_widget.dart';
 import '../widgets/explosion_overlay.dart';
+import '../models/resource_type.dart';
 import '../widgets/resource_bar.dart';
+import '../widgets/resource_icon.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -73,31 +75,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   _StatusBanner(game: game),
                   const Gap(8),
                 ],
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      _InfoPill(
-                        icon: Icons.hardware_rounded,
-                        label: 'Кирка Ур.${player.pickaxeLevel}',
-                        color: AppColors.iron,
-                      ),
-                      const Spacer(),
-                      if (game.status == GameStatus.playing)
-                        _InfoPill(
-                          icon: Icons.trending_up_rounded,
-                          label:
-                              '+${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal} очков',
-                          color: AppColors.gold,
-                        ),
-                    ],
-                  ),
-                ),
+                _RoundStatsBar(game: game, pickaxeLevel: player.pickaxeLevel),
                 const Gap(10),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: AspectRatio(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: AspectRatio(
                       aspectRatio: 1,
                       child: Container(
                         padding: const EdgeInsets.all(12),
@@ -146,6 +130,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       ),
                     ),
                   ),
+                  ),
                 ),
                 const Gap(14),
                 _ActionButtons(
@@ -169,36 +154,145 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 }
 
-class _InfoPill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _InfoPill(
-      {required this.icon, required this.label, required this.color});
+class _RoundStatsBar extends StatelessWidget {
+  final GameState game;
+  final int pickaxeLevel;
+  const _RoundStatsBar({required this.game, required this.pickaxeLevel});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: color.withOpacity(0.22)),
+    final playing = game.status == GameStatus.playing;
+    final score = game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF181C30), Color(0xFF0E1120)],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.cellBorder.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Pickaxe level
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.iron.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.iron.withOpacity(0.25)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.hardware_rounded,
+                      color: AppColors.iron, size: 12),
+                  const Gap(4),
+                  Text(
+                    'Ур.$pickaxeLevel',
+                    style: const TextStyle(
+                      color: AppColors.iron,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Gap(10),
+            Container(
+              width: 1,
+              height: 20,
+              color: AppColors.cellBorder.withOpacity(0.4),
+            ),
+            const Gap(10),
+            // Round resources
+            _MiniRes(ResourceType.diamond, game.roundDiamonds, AppColors.diamond),
+            const Gap(8),
+            _MiniRes(ResourceType.iron, game.roundIron, AppColors.iron),
+            const Gap(8),
+            _MiniRes(ResourceType.coal, game.roundCoal, AppColors.coal),
+            const Spacer(),
+            // Score
+            if (playing || game.roundScore > 0)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.gold.withOpacity(0.2),
+                      AppColors.gold.withOpacity(0.06),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: AppColors.gold.withOpacity(score > 0 ? 0.4 : 0.15)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.star_rounded,
+                      color: AppColors.gold
+                          .withOpacity(score > 0 ? 1 : 0.4),
+                      size: 12,
+                    ),
+                    const Gap(4),
+                    Text(
+                      '$score',
+                      style: TextStyle(
+                        color: AppColors.gold
+                            .withOpacity(score > 0 ? 1 : 0.4),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 13),
-          const Gap(5),
-          Text(label,
-              style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3)),
-        ],
-      ),
+    );
+  }
+}
+
+class _MiniRes extends StatelessWidget {
+  final ResourceType type;
+  final int count;
+  final Color color;
+  const _MiniRes(this.type, this.count, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ResourceIcon(type: type, size: 14),
+        const Gap(3),
+        Text(
+          '$count',
+          style: TextStyle(
+            color: count > 0 ? color : AppColors.textSecondary.withOpacity(0.35),
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
     );
   }
 }
