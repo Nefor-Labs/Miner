@@ -28,6 +28,7 @@ class ResourceBar extends ConsumerWidget {
             ),
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _Pill(type: ResourceType.diamond, count: player.diamonds),
               const Gap(8),

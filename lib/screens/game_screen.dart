@@ -113,6 +113,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         ),
                         child: GridView.builder(
                           physics: const NeverScrollableScrollPhysics(),
+                          clipBehavior: Clip.none,
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 5,
