@@ -26,7 +26,7 @@ class PlayerData extends HiveObject {
   int totalScore;
 
   @HiveField(7)
-  int pickaxeLevel; // 1-5
+  int pickaxeLevel; // 1-15
 
   @HiveField(8)
   int shieldCharges; // mine protection charges
