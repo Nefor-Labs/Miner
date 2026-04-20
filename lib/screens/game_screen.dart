@@ -19,7 +19,7 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   bool _showExplosion = false;
-  int _cooldown = 0; // seconds remaining
+  int _cooldown = 0;
   Timer? _cooldownTimer;
 
   @override
@@ -64,56 +64,66 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         Container(
           decoration: const BoxDecoration(gradient: AppColors.bgGradient),
           child: SafeArea(
+            bottom: false,
             child: Column(
               children: [
                 const ResourceBar(),
-                const Gap(12),
+                const Gap(10),
                 if (game.message != null) ...[
                   _StatusBanner(game: game),
-                  const Gap(10),
+                  const Gap(8),
                 ],
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _InfoPill(
                         icon: Icons.hardware_rounded,
                         label: 'Кирка Ур.${player.pickaxeLevel}',
                         color: AppColors.iron,
                       ),
-                      _InfoPill(
-                        icon: Icons.trending_up_rounded,
-                        label:
-                            '+${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal} очков',
-                        color: AppColors.primary,
-                      ),
+                      const Spacer(),
+                      if (game.status == GameStatus.playing)
+                        _InfoPill(
+                          icon: Icons.trending_up_rounded,
+                          label:
+                              '+${game.roundDiamonds * 10 + game.roundIron * 3 + game.roundCoal} очков',
+                          color: AppColors.gold,
+                        ),
                     ],
                   ),
                 ),
-                const Gap(12),
+                const Gap(10),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFF1A2540), Color(0xFF0F1825)],
+                            colors: [
+                              Color(0xFF151A30),
+                              Color(0xFF0D1020),
+                            ],
                           ),
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(28),
                           border: Border.all(
-                            color: AppColors.cellBorder.withOpacity(0.6),
+                            color: AppColors.cellBorder.withOpacity(0.7),
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              blurRadius: 20,
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 24,
                               offset: const Offset(0, 8),
+                            ),
+                            BoxShadow(
+                              color: AppColors.diamond.withOpacity(0.04),
+                              blurRadius: 40,
+                              spreadRadius: 4,
                             ),
                           ],
                         ),
@@ -122,8 +132,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 5,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 6,
+                            crossAxisSpacing: 7,
+                            mainAxisSpacing: 7,
                           ),
                           itemCount: 25,
                           itemBuilder: (context, i) => CellWidget(
@@ -137,19 +147,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     ),
                   ),
                 ),
-                const Gap(16),
+                const Gap(14),
                 _ActionButtons(
                   game: game,
                   notifier: notifier,
                   cooldown: _cooldown,
                 ),
-                const Gap(20),
+                const Gap(100),
               ],
             ),
           ),
         ),
-
-        // Взрыв
         if (_showExplosion)
           Positioned.fill(
             child: ExplosionOverlay(
@@ -172,20 +180,23 @@ class _InfoPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withOpacity(0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 14),
+          Icon(icon, color: color, size: 13),
           const Gap(5),
           Text(label,
               style: TextStyle(
-                  color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3)),
         ],
       ),
     );
@@ -213,31 +224,31 @@ class _StatusBanner extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.2), color.withOpacity(0.05)],
+          colors: [color.withOpacity(0.18), color.withOpacity(0.04)],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.45)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.4)),
         boxShadow: [
-          BoxShadow(color: color.withOpacity(0.2), blurRadius: 12),
+          BoxShadow(color: color.withOpacity(0.2), blurRadius: 16),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 18),
+          Icon(icon, color: color, size: 16),
           const Gap(8),
           Text(game.message!,
               style: TextStyle(
-                  color: color, fontSize: 15, fontWeight: FontWeight.w700)),
+                  color: color, fontSize: 14, fontWeight: FontWeight.w800)),
         ],
       ),
     )
         .animate()
-        .fadeIn(duration: 300.ms)
-        .slideY(begin: -0.4, end: 0, duration: 300.ms, curve: Curves.easeOut);
+        .fadeIn(duration: 250.ms)
+        .slideY(begin: -0.5, end: 0, duration: 250.ms, curve: Curves.easeOut);
   }
 }
 
@@ -254,25 +265,28 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Idle — просто кнопка старта
     if (game.status == GameStatus.idle) {
       return _buildWide(
         GradientButton(
           onPressed: notifier.startNewGame,
           gradient: AppColors.primaryGradient,
+          radius: 18,
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.hardware_rounded, size: 18),
               Gap(8),
-              Text('НАЧАТЬ ДОБЫЧУ'),
+              Text('НАЧАТЬ ДОБЫЧУ',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5)),
             ],
           ),
         ),
       );
     }
 
-    // Playing — кнопка кэшаута
     if (game.status == GameStatus.playing) {
       final hasResources =
           game.roundDiamonds + game.roundIron + game.roundCoal > 0;
@@ -280,24 +294,29 @@ class _ActionButtons extends StatelessWidget {
         GradientButton(
           onPressed: hasResources ? notifier.cashOut : null,
           gradient: AppColors.successGradient,
+          radius: 18,
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.savings_rounded, size: 18),
               Gap(8),
-              Text('ЗАБРАТЬ РЕСУРСЫ'),
+              Text('ЗАБРАТЬ РЕСУРСЫ',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5)),
             ],
           ),
         ),
       );
     }
 
-    // Won / Lost — кнопка нового раунда с кулдауном
     final ready = cooldown <= 0;
     return _buildWide(
       GradientButton(
         onPressed: ready ? notifier.startNewGame : null,
         gradient: AppColors.primaryGradient,
+        radius: 18,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -306,12 +325,19 @@ class _ActionButtons extends StatelessWidget {
               const Gap(10),
               Text(
                 'Подождите $cooldown сек...',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1),
               ),
             ] else ...[
               const Icon(Icons.refresh_rounded, size: 18),
               const Gap(8),
-              const Text('НОВЫЙ РАУНД'),
+              const Text('НОВЫЙ РАУНД',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5)),
             ],
           ],
         ),
@@ -320,8 +346,11 @@ class _ActionButtons extends StatelessWidget {
   }
 
   Widget _buildWide(Widget child) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: SizedBox(width: double.infinity, child: child),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: child),
       );
 }
 
@@ -341,8 +370,7 @@ class _CooldownRing extends StatelessWidget {
             value: seconds / 3,
             strokeWidth: 2.5,
             backgroundColor: Colors.white24,
-            valueColor:
-                const AlwaysStoppedAnimation<Color>(Colors.white),
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
           ),
           Center(
             child: Text(

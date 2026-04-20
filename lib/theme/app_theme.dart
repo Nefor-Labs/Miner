@@ -2,50 +2,72 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const bg = Color(0xFF080B14);
-  static const bgGradientEnd = Color(0xFF0D1526);
-  static const surface = Color(0xFF111827);
-  static const card = Color(0xFF141E30);
-  static const cardLight = Color(0xFF1C2940);
-  static const accent = Color(0xFF1A3050);
+  static const bg = Color(0xFF07090F);
+  static const bgGradientEnd = Color(0xFF0C1020);
+  static const surface = Color(0xFF0E1118);
+  static const card = Color(0xFF111420);
+  static const cardLight = Color(0xFF181C2E);
+  static const accent = Color(0xFF191D32);
+
   static const primary = Color(0xFFE94560);
   static const primaryDark = Color(0xFFB5334A);
+
+  static const gold = Color(0xFFF5A623);
+  static const goldDark = Color(0xFFC87810);
+
   static const diamond = Color(0xFF00D4FF);
   static const diamondDark = Color(0xFF0088AA);
-  static const iron = Color(0xFFB0BEC5);
-  static const coal = Color(0xFF607080);
-  static const mine = Color(0xFFFF4444);
+  static const iron = Color(0xFFA8B8C8);
+  static const coal = Color(0xFF526070);
+  static const mine = Color(0xFFFF3D3D);
+
   static const success = Color(0xFF00E676);
   static const successDark = Color(0xFF00B248);
-  static const textPrimary = Color(0xFFECEFF1);
-  static const textSecondary = Color(0xFF78909C);
-  static const cellUnrevealed = Color(0xFF1A2540);
-  static const cellBorder = Color(0xFF243350);
+
+  static const textPrimary = Color(0xFFEDF0F4);
+  static const textSecondary = Color(0xFF5A6880);
+
+  static const cellUnrevealed = Color(0xFF131728);
+  static const cellBorder = Color(0xFF1E2444);
+
   static const glowBlue = Color(0xFF00D4FF);
   static const glowRed = Color(0xFFE94560);
 
   static const LinearGradient bgGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [bg, bgGradientEnd, Color(0xFF0A1020)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF07090F), Color(0xFF0C1020), Color(0xFF08091A)],
+    stops: [0.0, 0.55, 1.0],
   );
 
   static LinearGradient primaryGradient = const LinearGradient(
-    colors: [Color(0xFFE94560), Color(0xFFC0392B)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFEF4F6B), Color(0xFFB5334A)],
   );
 
   static LinearGradient successGradient = const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
     colors: [Color(0xFF00E676), Color(0xFF00B248)],
   );
 
   static LinearGradient diamondGradient = const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
     colors: [Color(0xFF00D4FF), Color(0xFF0088CC)],
+  );
+
+  static LinearGradient goldGradient = const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFF5A623), Color(0xFFC87810)],
   );
 
   static LinearGradient cardGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF1C2940), Color(0xFF111827)],
+    colors: [Color(0xFF181C2E), Color(0xFF111420)],
   );
 }
 
@@ -63,20 +85,32 @@ class AppDecorations {
         color: borderColor ?? AppColors.cellBorder,
         width: borderWidth,
       ),
-      boxShadow: shadows,
+      boxShadow: shadows ??
+          [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
     );
   }
 
   static BoxDecoration glowCard(Color glowColor, {double radius = 20}) {
     return glassCard(
-      borderColor: glowColor.withOpacity(0.5),
+      borderColor: glowColor.withOpacity(0.45),
       borderWidth: 1.5,
       radius: radius,
       shadows: [
         BoxShadow(
-          color: glowColor.withOpacity(0.15),
-          blurRadius: 20,
+          color: glowColor.withOpacity(0.18),
+          blurRadius: 24,
           spreadRadius: 2,
+        ),
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
         ),
       ],
     );
@@ -97,29 +131,29 @@ ThemeData buildAppTheme() {
       const TextTheme(
         displayLarge: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 32,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 3,
+          fontSize: 30,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 2.5,
         ),
         headlineMedium: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 22,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
         titleLarge: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
         ),
         bodyLarge: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 16,
+          fontSize: 15,
         ),
         bodyMedium: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 13,
-          letterSpacing: 0.3,
+          letterSpacing: 0.2,
         ),
       ),
     ),
@@ -129,7 +163,7 @@ ThemeData buildAppTheme() {
       titleTextStyle: TextStyle(
         color: AppColors.textPrimary,
         fontSize: 20,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         letterSpacing: 2,
         fontFamily: 'Rajdhani',
       ),
@@ -141,11 +175,6 @@ ThemeData buildAppTheme() {
       unselectedItemColor: AppColors.textSecondary,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
-      selectedLabelStyle: TextStyle(
-        fontWeight: FontWeight.w700,
-        fontSize: 11,
-        letterSpacing: 0.5,
-      ),
     ),
     cardTheme: CardTheme(
       color: AppColors.card,
@@ -164,8 +193,8 @@ ThemeData buildAppTheme() {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         textStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
           letterSpacing: 1.5,
         ),
       ),
@@ -173,7 +202,6 @@ ThemeData buildAppTheme() {
   );
 }
 
-// Gradient button wrapper
 class GradientButton extends StatelessWidget {
   final Widget child;
   final VoidCallback? onPressed;
@@ -186,9 +214,9 @@ class GradientButton extends StatelessWidget {
     required this.child,
     required this.onPressed,
     this.gradient = const LinearGradient(
-      colors: [Color(0xFFE94560), Color(0xFFC0392B)],
+      colors: [Color(0xFFEF4F6B), Color(0xFFB5334A)],
     ),
-    this.radius = 16,
+    this.radius = 14,
     this.padding,
   });
 
@@ -202,9 +230,14 @@ class GradientButton extends StatelessWidget {
         boxShadow: onPressed != null
             ? [
                 BoxShadow(
-                  color: gradient.colors.first.withOpacity(0.35),
-                  blurRadius: 12,
+                  color: gradient.colors.first.withOpacity(0.4),
+                  blurRadius: 16,
                   offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: gradient.colors.first.withOpacity(0.15),
+                  blurRadius: 30,
+                  spreadRadius: 2,
                 ),
               ]
             : null,

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -13,108 +14,120 @@ class ResourceBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final player = ref.watch(playerProvider);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF141E30), Color(0xFF0F1722)],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.cellBorder.withOpacity(0.5),
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.card.withOpacity(0.85),
+            border: Border(
+              bottom: BorderSide(
+                color: AppColors.cellBorder.withOpacity(0.4),
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              _Pill(type: ResourceType.diamond, count: player.diamonds),
+              const Gap(8),
+              _Pill(type: ResourceType.iron, count: player.iron),
+              const Gap(8),
+              _Pill(type: ResourceType.coal, count: player.coal),
+              if (player.shieldCharges > 0) ...[
+                const Gap(8),
+                _ShieldPill(count: player.shieldCharges),
+              ],
+            ],
           ),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _Chip(type: ResourceType.diamond, count: player.diamonds),
-          _divider(),
-          _Chip(type: ResourceType.iron, count: player.iron),
-          _divider(),
-          _Chip(type: ResourceType.coal, count: player.coal),
-          if (player.shieldCharges > 0) ...[
-            _divider(),
-            _ShieldChip(count: player.shieldCharges),
-          ],
-        ],
-      ),
     );
   }
-
-  Widget _divider() => Container(
-        width: 1,
-        height: 24,
-        color: AppColors.cellBorder.withOpacity(0.4),
-      );
 }
 
-class _Chip extends StatelessWidget {
+class _Pill extends StatelessWidget {
   final ResourceType type;
   final int count;
 
-  const _Chip({required this.type, required this.count});
+  const _Pill({required this.type, required this.count});
 
   Color get _color {
     switch (type) {
-      case ResourceType.diamond: return AppColors.diamond;
-      case ResourceType.iron: return AppColors.iron;
-      case ResourceType.coal: return AppColors.coal;
-      default: return AppColors.mine;
+      case ResourceType.diamond:
+        return AppColors.diamond;
+      case ResourceType.iron:
+        return AppColors.iron;
+      case ResourceType.coal:
+        return AppColors.coal;
+      default:
+        return AppColors.mine;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ResourceIcon(type: type, size: 20),
-        const Gap(6),
-        Text(
-          '$count',
-          style: TextStyle(
-            color: _color,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: _color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _color.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ResourceIcon(type: type, size: 16),
+          const Gap(5),
+          Text(
+            _format(count),
+            style: TextStyle(
+              color: _color,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  String _format(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return '$n';
   }
 }
 
-class _ShieldChip extends StatelessWidget {
+class _ShieldPill extends StatelessWidget {
   final int count;
-  const _ShieldChip({required this.count});
+  const _ShieldPill({required this.count});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(6),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.success.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.success.withOpacity(0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.shield_rounded, color: AppColors.success, size: 14),
+          const Gap(4),
+          Text(
+            '$count',
+            style: const TextStyle(
+              color: AppColors.success,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          child: const Icon(Icons.shield_rounded,
-              color: AppColors.success, size: 16),
-        ),
-        const Gap(5),
-        Text(
-          '$count',
-          style: const TextStyle(
-            color: AppColors.success,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -134,10 +147,14 @@ class ResourceBadge extends StatelessWidget {
 
   Color get _color {
     switch (type) {
-      case ResourceType.diamond: return AppColors.diamond;
-      case ResourceType.iron: return AppColors.iron;
-      case ResourceType.coal: return AppColors.coal;
-      default: return AppColors.mine;
+      case ResourceType.diamond:
+        return AppColors.diamond;
+      case ResourceType.iron:
+        return AppColors.iron;
+      case ResourceType.coal:
+        return AppColors.coal;
+      default:
+        return AppColors.mine;
     }
   }
 

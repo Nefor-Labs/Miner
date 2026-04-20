@@ -22,7 +22,6 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh pending every 30 seconds while screen is open
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       ref.read(baseProvider.notifier).refreshPending();
     });
@@ -45,15 +44,16 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ResourceBar(),
-            const Gap(20),
+            const Gap(16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Column(
@@ -75,25 +75,23 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [
-                          AppColors.iron.withOpacity(0.2),
-                          AppColors.iron.withOpacity(0.05),
-                        ]),
+                        color: AppColors.iron.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                            color: AppColors.iron.withOpacity(0.3)),
+                            color: AppColors.iron.withOpacity(0.25)),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.people_rounded,
-                              color: AppColors.iron, size: 14),
+                              color: AppColors.iron, size: 13),
                           const Gap(5),
                           Text(
                             '${base.workers} рабочих',
                             style: const TextStyle(
                               color: AppColors.iron,
                               fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],
@@ -102,10 +100,10 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
                 ],
               ),
             ),
-            const Gap(20),
+            const Gap(16),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                 child: Column(
                   children: [
                     if (!base.purchased)
@@ -118,17 +116,17 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
                           .animate()
                           .fadeIn()
                           .slideY(begin: 0.15),
-                      const Gap(14),
+                      const Gap(12),
                       _CollectCard(base: base)
                           .animate(delay: 80.ms)
                           .fadeIn()
                           .slideY(begin: 0.15),
-                      const Gap(14),
+                      const Gap(12),
                       _UpgradeCard(base: base, player: player)
                           .animate(delay: 160.ms)
                           .fadeIn()
                           .slideY(begin: 0.15),
-                      const Gap(14),
+                      const Gap(12),
                       _WorkersCard(base: base)
                           .animate(delay: 240.ms)
                           .fadeIn()
@@ -154,81 +152,132 @@ class _PurchaseCard extends ConsumerWidget {
     final canAfford = player.diamonds >= 500;
 
     return Container(
-      decoration: AppDecorations.glowCard(
-        canAfford ? AppColors.diamond : AppColors.cellBorder,
-        radius: 22,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.diamond.withOpacity(canAfford ? 0.1 : 0.04),
+            AppColors.card,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: canAfford
+              ? AppColors.diamond.withOpacity(0.5)
+              : AppColors.cellBorder,
+          width: canAfford ? 1.5 : 1,
+        ),
+        boxShadow: [
+          if (canAfford)
+            BoxShadow(
+              color: AppColors.diamond.withOpacity(0.18),
+              blurRadius: 24,
+              spreadRadius: 2,
+            ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       child: Column(
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 88,
+            height: 88,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.diamond.withOpacity(0.2),
+                  AppColors.diamond.withOpacity(0.22),
                   AppColors.accent,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                  color: AppColors.diamond.withOpacity(0.3)),
+                  color: AppColors.diamond.withOpacity(0.35)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.diamond.withOpacity(0.2),
+                  blurRadius: 20,
+                ),
+              ],
             ),
             child: const Icon(Icons.factory_rounded,
-                color: AppColors.diamond, size: 40),
+                color: AppColors.diamond, size: 44),
           ),
-          const Gap(16),
+          const Gap(20),
           Text(
             'Шахтёрская База',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontSize: 20,
+                  fontWeight: FontWeight.w800,
                 ),
           ),
-          const Gap(6),
+          const Gap(8),
           Text(
             'Нанимай рабочих, которые автоматически\nдобывают ресурсы пока ты не играешь',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const Gap(20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.diamond_rounded,
-                  color: AppColors.diamond, size: 18),
-              const Gap(6),
-              Text(
-                '500 алмазов',
-                style: TextStyle(
-                  color: canAfford
-                      ? AppColors.diamond
-                      : AppColors.mine,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  height: 1.5,
                 ),
-              ),
-            ],
           ),
-          const Gap(16),
+          const Gap(22),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [
+                AppColors.diamond.withOpacity(canAfford ? 0.15 : 0.05),
+                AppColors.diamond.withOpacity(0.02),
+              ]),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                  color: AppColors.diamond.withOpacity(canAfford ? 0.4 : 0.15)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.diamond_rounded,
+                    color: AppColors.diamond, size: 18),
+                const Gap(8),
+                Text(
+                  '500 алмазов',
+                  style: TextStyle(
+                    color: canAfford ? AppColors.diamond : AppColors.mine,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Gap(18),
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: GradientButton(
               onPressed: canAfford
                   ? () => ref.read(baseProvider.notifier).purchase()
                   : null,
               gradient: AppColors.diamondGradient,
-              child: const Text('КУПИТЬ БАЗУ'),
+              radius: 16,
+              child: const Text('КУПИТЬ БАЗУ',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5)),
             ),
           ),
           if (!canAfford) ...[
-            const Gap(8),
+            const Gap(10),
             Text(
               'Не хватает ${500 - player.diamonds} алмазов',
-              style: const TextStyle(
-                  color: AppColors.mine, fontSize: 12),
+              style: const TextStyle(color: AppColors.mine, fontSize: 12),
             ),
           ],
         ],
@@ -244,28 +293,33 @@ class _BaseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppDecorations.glassCard(radius: 20),
-      padding: const EdgeInsets.all(20),
+      decoration: AppDecorations.glassCard(radius: 22),
+      padding: const EdgeInsets.all(18),
       child: Row(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 66,
+            height: 66,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.2),
+                  AppColors.primary.withOpacity(0.22),
                   AppColors.accent,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(18),
-              border:
-                  Border.all(color: AppColors.primary.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.15),
+                  blurRadius: 16,
+                )
+              ],
             ),
             child: const Icon(Icons.factory_rounded,
-                color: AppColors.primary, size: 32),
+                color: AppColors.primary, size: 34),
           ),
           const Gap(16),
           Expanded(
@@ -274,13 +328,12 @@ class _BaseCard extends StatelessWidget {
               children: [
                 Text(base.levelTitle,
                     style: Theme.of(context).textTheme.titleLarge),
-                const Gap(4),
+                const Gap(3),
                 Text(
                   'Уровень ${base.level} • ${base.workers} рабочих',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const Gap(8),
-                // Production per hour
+                const Gap(10),
                 _ProductionRow(base: base),
               ],
             ),
@@ -305,7 +358,8 @@ class _ProductionRow extends StatelessWidget {
     final coMax = base.workers * BaseData.coalPerWorkerMax;
 
     return Wrap(
-      spacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: [
         _ProdChip('💎', '$dMin-$dMax', AppColors.diamond),
         _ProdChip('🪨', '$irMin-$irMax', AppColors.iron),
@@ -324,11 +378,11 @@ class _ProdChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.25)),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -337,10 +391,10 @@ class _ProdChip extends StatelessWidget {
           const Gap(3),
           Text(range,
               style: TextStyle(
-                  color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+                  color: color, fontSize: 11, fontWeight: FontWeight.w700)),
           Text('/ч',
               style: TextStyle(
-                  color: color.withOpacity(0.6), fontSize: 9)),
+                  color: color.withOpacity(0.5), fontSize: 9)),
         ],
       ),
     );
@@ -358,26 +412,51 @@ class _CollectCard extends ConsumerWidget {
     final hoursLeft = ref.read(baseProvider.notifier).hoursUntilFull();
     final isFull = hoursLeft <= 0;
 
+    final borderColor = isFull
+        ? AppColors.mine
+        : hasPending
+            ? AppColors.success
+            : AppColors.cellBorder;
+
     return Container(
-      decoration: AppDecorations.glowCard(
-        hasPending ? AppColors.success : AppColors.cellBorder,
-        radius: 20,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            borderColor.withOpacity(0.08),
+            AppColors.card,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: borderColor.withOpacity(hasPending ? 0.45 : 0.25),
+          width: hasPending ? 1.5 : 1,
+        ),
+        boxShadow: hasPending
+            ? [
+                BoxShadow(
+                  color: borderColor.withOpacity(0.15),
+                  blurRadius: 20,
+                )
+              ]
+            : null,
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.15),
+                  color: borderColor.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.inventory_2_rounded,
-                    color: AppColors.success, size: 22),
+                child: Icon(Icons.inventory_2_rounded,
+                    color: borderColor, size: 22),
               ),
               const Gap(12),
               Expanded(
@@ -402,7 +481,7 @@ class _CollectCard extends ConsumerWidget {
               ),
             ],
           ),
-          const Gap(16),
+          const Gap(14),
           Row(
             children: [
               _PendingChip('💎', base.pendingDiamonds, AppColors.diamond),
@@ -421,7 +500,7 @@ class _CollectCard extends ConsumerWidget {
                     horizontal: 16, vertical: 10),
                 child: const Text('СОБРАТЬ',
                     style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700)),
+                        fontSize: 13, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -442,11 +521,11 @@ class _PendingChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: amount > 0 ? color.withOpacity(0.12) : AppColors.surface,
+        color: amount > 0 ? color.withOpacity(0.1) : AppColors.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
             color: amount > 0
-                ? color.withOpacity(0.35)
+                ? color.withOpacity(0.3)
                 : AppColors.cellBorder),
       ),
       child: Row(
@@ -459,7 +538,7 @@ class _PendingChip extends StatelessWidget {
             style: TextStyle(
               color: amount > 0 ? color : AppColors.textSecondary,
               fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -485,12 +564,23 @@ class _UpgradeCard extends ConsumerWidget {
         player.coal >= coCost;
 
     return Container(
-      decoration: AppDecorations.glassCard(
-        borderColor: canAfford
-            ? AppColors.primary.withOpacity(0.4)
-            : AppColors.cellBorder,
-        radius: 20,
-        shadows: canAfford
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withOpacity(canAfford ? 0.08 : 0.03),
+            AppColors.card,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: canAfford
+              ? AppColors.primary.withOpacity(0.4)
+              : AppColors.cellBorder,
+          width: canAfford ? 1.5 : 1,
+        ),
+        boxShadow: canAfford
             ? [
                 BoxShadow(
                   color: AppColors.primary.withOpacity(0.12),
@@ -499,17 +589,17 @@ class _UpgradeCard extends ConsumerWidget {
               ]
             : null,
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: AppColors.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.upgrade_rounded,
@@ -554,7 +644,7 @@ class _UpgradeCard extends ConsumerWidget {
                     horizontal: 16, vertical: 10),
                 child: const Text('УЛУЧШИТЬ',
                     style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700)),
+                        fontSize: 13, fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -605,14 +695,48 @@ class _WorkersCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppDecorations.glassCard(radius: 20),
-      padding: const EdgeInsets.all(20),
+      decoration: AppDecorations.glassCard(radius: 22),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Рабочие',
-              style: Theme.of(context).textTheme.titleLarge),
-          const Gap(12),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.iron.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.people_rounded,
+                    color: AppColors.iron, size: 20),
+              ),
+              const Gap(12),
+              Text('Рабочие',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const Spacer(),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.iron.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border:
+                      Border.all(color: AppColors.iron.withOpacity(0.25)),
+                ),
+                child: Text(
+                  '${base.workers} / ${base.workers}',
+                  style: const TextStyle(
+                    color: AppColors.iron,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Gap(14),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -641,19 +765,26 @@ class _WorkerBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 52,
-      height: 52,
+      width: 54,
+      height: 54,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.iron.withOpacity(0.2),
+            AppColors.iron.withOpacity(0.18),
             AppColors.accent,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.iron.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: AppColors.iron.withOpacity(0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -661,10 +792,10 @@ class _WorkerBubble extends StatelessWidget {
           const Icon(Icons.person_rounded, color: AppColors.iron, size: 22),
           Text(
             '#$index',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.6),
               fontSize: 9,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

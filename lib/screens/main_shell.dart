@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
@@ -26,6 +27,7 @@ class MainShell extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
+      extendBody: true,
       body: IndexedStack(index: tab, children: _screens),
       bottomNavigationBar: _BottomNav(
         currentIndex: tab,
@@ -42,49 +44,55 @@ class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.currentIndex, required this.onTap});
 
   static const _items = [
-    (Icons.hardware_rounded, AppColors.primary),
-    (Icons.factory_rounded, AppColors.iron),
-    (Icons.assignment_rounded, AppColors.success),
-    (Icons.storefront_rounded, AppColors.diamond),
-    (Icons.person_rounded, AppColors.primary),
+    (Icons.hardware_rounded, AppColors.primary, 'Шахта'),
+    (Icons.factory_rounded, AppColors.iron, 'База'),
+    (Icons.assignment_rounded, AppColors.success, 'Задания'),
+    (Icons.storefront_rounded, AppColors.diamond, 'Магазин'),
+    (Icons.person_rounded, AppColors.primary, 'Профиль'),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0F1722), Color(0xFF080B14)],
-        ),
-        border: Border(
-          top: BorderSide(color: AppColors.cellBorder.withOpacity(0.4)),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(_items.length, (i) {
-              final (icon, accent) = _items[i];
-              final selected = currentIndex == i;
-              return _NavIcon(
-                icon: icon,
-                selected: selected,
-                accent: accent,
-                onTap: () => onTap(i),
-              );
-            }),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.cardLight.withOpacity(0.92),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: AppColors.cellBorder.withOpacity(0.6),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(_items.length, (i) {
+                  final (icon, accent, label) = _items[i];
+                  final selected = currentIndex == i;
+                  return _NavItem(
+                    icon: icon,
+                    label: label,
+                    selected: selected,
+                    accent: accent,
+                    onTap: () => onTap(i),
+                  );
+                }),
+              ),
+            ),
           ),
         ),
       ),
@@ -92,14 +100,16 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-class _NavIcon extends StatelessWidget {
+class _NavItem extends StatelessWidget {
   final IconData icon;
+  final String label;
   final bool selected;
   final Color accent;
   final VoidCallback onTap;
 
-  const _NavIcon({
+  const _NavItem({
     required this.icon,
+    required this.label,
     required this.selected,
     required this.accent,
     required this.onTap,
@@ -111,35 +121,52 @@ class _NavIcon extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 280),
         curve: Curves.easeOutCubic,
-        width: 52,
-        height: 44,
+        width: 64,
+        padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: selected
             ? BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    accent.withOpacity(0.28),
-                    accent.withOpacity(0.08),
+                    accent.withOpacity(0.22),
+                    accent.withOpacity(0.06),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: accent.withOpacity(0.45), width: 1.2),
-                boxShadow: [
-                  BoxShadow(
-                    color: accent.withOpacity(0.2),
-                    blurRadius: 10,
-                    spreadRadius: 0,
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: accent.withOpacity(0.35), width: 1),
               )
-            : null,
-        child: Icon(
-          icon,
-          color: selected ? accent : AppColors.textSecondary.withOpacity(0.6),
-          size: selected ? 24 : 22,
+            : const BoxDecoration(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedScale(
+              scale: selected ? 1.15 : 1.0,
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutBack,
+              child: Icon(
+                icon,
+                color: selected
+                    ? accent
+                    : AppColors.textSecondary.withOpacity(0.5),
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 3),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                color: selected ? accent : AppColors.textSecondary.withOpacity(0.4),
+                fontSize: selected ? 10 : 9,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                letterSpacing: 0.3,
+                fontFamily: 'Rajdhani',
+              ),
+              child: Text(label),
+            ),
+          ],
         ),
       ),
     );

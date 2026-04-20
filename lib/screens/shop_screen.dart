@@ -17,30 +17,30 @@ class ShopScreen extends ConsumerWidget {
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ResourceBar(),
-            const Gap(20),
+            const Gap(16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('МАГАЗИН',
                       style: Theme.of(context).textTheme.displayLarge),
-                  const Gap(2),
                   Text('Прокачай своё снаряжение',
                       style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
-            const Gap(16),
+            const Gap(14),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
                 itemCount: shopUpgrades.length,
-                separatorBuilder: (_, __) => const Gap(14),
+                separatorBuilder: (_, __) => const Gap(12),
                 itemBuilder: (context, i) {
                   return _UpgradeCard(upgrade: shopUpgrades[i])
                       .animate(delay: (i * 80).ms)
@@ -122,21 +122,46 @@ class _UpgradeCard extends ConsumerWidget {
         ),
     };
 
+    final effectiveColor = maxed ? AppColors.gold : color;
+
     return Container(
-      decoration: AppDecorations.glassCard(
-        borderColor: canAfford
-            ? color.withOpacity(0.45)
-            : AppColors.cellBorder,
-        borderWidth: canAfford ? 1.5 : 1,
-        shadows: canAfford
-            ? [
-                BoxShadow(
-                  color: color.withOpacity(0.12),
-                  blurRadius: 16,
-                  spreadRadius: 0,
-                )
-              ]
-            : null,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            effectiveColor.withOpacity(canAfford ? 0.1 : 0.04),
+            AppColors.card,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: maxed
+              ? AppColors.gold.withOpacity(0.4)
+              : canAfford
+                  ? color.withOpacity(0.5)
+                  : AppColors.cellBorder,
+          width: canAfford && !maxed ? 1.5 : 1,
+        ),
+        boxShadow: [
+          if (canAfford && !maxed)
+            BoxShadow(
+              color: color.withOpacity(0.14),
+              blurRadius: 20,
+              spreadRadius: 0,
+            ),
+          if (maxed)
+            BoxShadow(
+              color: AppColors.gold.withOpacity(0.14),
+              blurRadius: 20,
+              spreadRadius: 0,
+            ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -144,23 +169,22 @@ class _UpgradeCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                // Icon container
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        color.withOpacity(0.2),
-                        color.withOpacity(0.05),
+                        effectiveColor.withOpacity(0.22),
+                        effectiveColor.withOpacity(0.06),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: color.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: effectiveColor.withOpacity(0.35)),
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(icon, color: effectiveColor, size: 26),
                 ),
                 const Gap(14),
                 Expanded(
@@ -169,9 +193,11 @@ class _UpgradeCard extends ConsumerWidget {
                     children: [
                       Text(upgrade.name,
                           style: Theme.of(context).textTheme.titleLarge),
-                      const Gap(2),
+                      const Gap(3),
                       Text(
-                        nextLevel?.description ?? 'Максимальный уровень',
+                        maxed
+                            ? 'Максимальный уровень'
+                            : (nextLevel?.description ?? ''),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -182,20 +208,28 @@ class _UpgradeCard extends ConsumerWidget {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        color.withOpacity(0.25),
-                        color.withOpacity(0.1),
-                      ],
+                      colors: maxed
+                          ? [
+                              AppColors.gold.withOpacity(0.3),
+                              AppColors.gold.withOpacity(0.1),
+                            ]
+                          : [
+                              color.withOpacity(0.22),
+                              color.withOpacity(0.08),
+                            ],
                     ),
                     borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: color.withOpacity(0.4)),
+                    border: Border.all(
+                        color: maxed
+                            ? AppColors.gold.withOpacity(0.45)
+                            : color.withOpacity(0.35)),
                   ),
                   child: Text(
                     status,
                     style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
+                      color: maxed ? AppColors.gold : color,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -210,7 +244,7 @@ class _UpgradeCard extends ConsumerWidget {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      AppColors.cellBorder.withOpacity(0.6),
+                      AppColors.cellBorder.withOpacity(0.5),
                       Colors.transparent,
                     ],
                   ),
@@ -231,7 +265,9 @@ class _UpgradeCard extends ConsumerWidget {
                   GradientButton(
                     onPressed: canAfford ? purchase : null,
                     gradient: LinearGradient(
-                        colors: [color, color.withOpacity(0.7)]),
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [color, color.withOpacity(0.65)]),
                     radius: 12,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 18, vertical: 10),
@@ -241,7 +277,7 @@ class _UpgradeCard extends ConsumerWidget {
                           : 'УЛУЧШИТЬ',
                       style: const TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                           letterSpacing: 1),
                     ),
                   ),
@@ -264,19 +300,18 @@ class _CostPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enough = have >= cost;
+    final c = enough ? AppColors.success : AppColors.mine;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: (enough ? AppColors.success : AppColors.mine).withOpacity(0.08),
+        color: c.withOpacity(0.07),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: (enough ? AppColors.success : AppColors.mine).withOpacity(0.25),
-        ),
+        border: Border.all(color: c.withOpacity(0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ResourceIcon(type: type, size: 14),
+          ResourceIcon(type: type, size: 13),
           const Gap(3),
           Text(
             '$cost',

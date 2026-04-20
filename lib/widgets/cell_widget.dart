@@ -32,65 +32,82 @@ class CellWidget extends StatelessWidget {
     return GestureDetector(
       onTap: revealed ? null : onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
+        duration: const Duration(milliseconds: 320),
         curve: Curves.easeOutBack,
-        decoration: BoxDecoration(
-          gradient: revealed
-              ? LinearGradient(
+        decoration: revealed
+            ? BoxDecoration(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    glow.withOpacity(0.18),
-                    glow.withOpacity(0.06),
-                  ],
-                )
-              : const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1E2E50),
-                    Color(0xFF141E35),
+                    glow.withOpacity(0.2),
+                    glow.withOpacity(0.05),
                   ],
                 ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: revealed
-                ? glow.withOpacity(0.55)
-                : AppColors.cellBorder,
-            width: revealed ? 1.5 : 1,
-          ),
-          boxShadow: revealed
-              ? [
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: glow.withOpacity(0.6),
+                  width: 1.5,
+                ),
+                boxShadow: [
                   BoxShadow(
-                    color: glow.withOpacity(0.25),
-                    blurRadius: 10,
+                    color: glow.withOpacity(0.3),
+                    blurRadius: 12,
                     spreadRadius: 0,
                   ),
-                ]
-              : [
-                  const BoxShadow(
-                    color: Color(0x33000000),
+                ],
+              )
+            : BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1A2040),
+                    Color(0xFF101525),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.cellBorder,
+                  width: 1,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x40000000),
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),
                 ],
-        ),
-        child: Center(
-          child: revealed
-              ? ResourceIcon(type: cell.type, size: 26)
-                  .animate()
-                  .scale(
-                    begin: const Offset(0.2, 0.2),
-                    end: const Offset(1.0, 1.0),
-                    duration: 350.ms,
-                    curve: Curves.elasticOut,
-                  )
-                  .fadeIn(duration: 200.ms)
-              : Icon(
-                  Icons.question_mark_rounded,
-                  color: AppColors.cellBorder.withOpacity(0.6),
-                  size: 18,
+              ),
+        child: Stack(
+          children: [
+            if (!revealed)
+              Positioned(
+                top: 4,
+                left: 4,
+                child: Container(
+                  width: 8,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(1),
+                  ),
                 ),
+              ),
+            Center(
+              child: revealed
+                  ? ResourceIcon(type: cell.type, size: 26)
+                      .animate()
+                      .scale(
+                        begin: const Offset(0.1, 0.1),
+                        end: const Offset(1.0, 1.0),
+                        duration: 380.ms,
+                        curve: Curves.elasticOut,
+                      )
+                      .fadeIn(duration: 180.ms)
+                  : null,
+            ),
+          ],
         ),
       ),
     );

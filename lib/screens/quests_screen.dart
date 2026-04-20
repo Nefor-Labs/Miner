@@ -19,18 +19,22 @@ class QuestsScreen extends ConsumerWidget {
     final mins = minutes % 60;
     final timeStr = hours > 0 ? '${hours}ч ${mins}м' : '${mins}м';
 
+    final allClaimed = state.quests.every((q) => q.rewardClaimed);
+    final completedCount = state.quests.where((q) => q.completed).length;
+
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
+        bottom: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ResourceBar(),
-            const Gap(20),
+            const Gap(16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Column(
@@ -43,43 +47,61 @@ class QuestsScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [
-                        AppColors.diamond.withOpacity(0.2),
-                        AppColors.diamond.withOpacity(0.05),
-                      ]),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(
-                          color: AppColors.diamond.withOpacity(0.35)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.timer_rounded,
-                            color: AppColors.diamond, size: 14),
-                        const Gap(5),
-                        Text(
-                          'Через $timeStr',
-                          style: const TextStyle(
-                            color: AppColors.diamond,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.diamond.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                              color: AppColors.diamond.withOpacity(0.3)),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.timer_rounded,
+                                color: AppColors.diamond, size: 13),
+                            const Gap(4),
+                            Text(
+                              'Через $timeStr',
+                              style: const TextStyle(
+                                color: AppColors.diamond,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        '$completedCount / ${state.quests.length} выполнено',
+                        style: TextStyle(
+                          color: AppColors.textSecondary.withOpacity(0.6),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const Gap(20),
+            const Gap(6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _ProgressStrip(
+                  completed: completedCount, total: state.quests.length),
+            ),
+            const Gap(14),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
                 itemCount: state.quests.length,
-                separatorBuilder: (_, __) => const Gap(14),
+                separatorBuilder: (_, __) => const Gap(12),
                 itemBuilder: (context, i) {
                   return _QuestCard(
                     quest: state.quests[i],
@@ -93,6 +115,35 @@ class QuestsScreen extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgressStrip extends StatelessWidget {
+  final int completed;
+  final int total;
+  const _ProgressStrip({required this.completed, required this.total});
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = total == 0 ? 0.0 : completed / total;
+    return Container(
+      height: 4,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.cellBorder.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: FractionallySizedBox(
+        widthFactor: pct,
+        alignment: Alignment.centerLeft,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: pct >= 1 ? AppColors.goldGradient : AppColors.successGradient,
+            borderRadius: BorderRadius.circular(4),
+          ),
         ),
       ),
     );
@@ -126,53 +177,63 @@ class _QuestCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: claimed
               ? [
-                  AppColors.surface.withOpacity(0.5),
-                  AppColors.surface.withOpacity(0.3),
+                  AppColors.surface.withOpacity(0.4),
+                  AppColors.surface.withOpacity(0.2),
                 ]
-              : [
-                  accentColor.withOpacity(0.1),
-                  AppColors.card,
-                ],
+              : done
+                  ? [
+                      AppColors.success.withOpacity(0.1),
+                      AppColors.card,
+                    ]
+                  : [
+                      accentColor.withOpacity(0.07),
+                      AppColors.card,
+                    ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: claimed
-              ? AppColors.cellBorder.withOpacity(0.3)
-              : accentColor.withOpacity(0.4),
+              ? AppColors.cellBorder.withOpacity(0.25)
+              : accentColor.withOpacity(done ? 0.45 : 0.3),
           width: done && !claimed ? 1.5 : 1,
         ),
         boxShadow: done && !claimed
             ? [
                 BoxShadow(
-                  color: accentColor.withOpacity(0.2),
-                  blurRadius: 16,
+                  color: accentColor.withOpacity(0.18),
+                  blurRadius: 20,
+                  spreadRadius: 0,
                 )
               ]
-            : null,
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              // Type icon container
               Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(colors: [
                     accentColor.withOpacity(0.2),
                     accentColor.withOpacity(0.05),
                   ]),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: accentColor.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: accentColor.withOpacity(0.3)),
                 ),
                 child: Center(
                   child: Text(
                     quest.type.icon,
-                    style: const TextStyle(fontSize: 20),
+                    style: const TextStyle(fontSize: 22),
                   ),
                 ),
               ),
@@ -187,16 +248,29 @@ class _QuestCard extends StatelessWidget {
                             color: claimed
                                 ? AppColors.textSecondary
                                 : AppColors.textPrimary,
+                            fontSize: 15,
                           ),
                     ),
                     const Gap(2),
-                    Text(
-                      '${quest.progress} / ${quest.target}',
-                      style: TextStyle(
-                        color: accentColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          '${quest.progress}',
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          ' / ${quest.target}',
+                          style: TextStyle(
+                            color: AppColors.textSecondary.withOpacity(0.5),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -207,66 +281,69 @@ class _QuestCard extends StatelessWidget {
                   gradient: AppColors.successGradient,
                   radius: 12,
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                      horizontal: 16, vertical: 10),
                   child: const Text(
                     'ЗАБРАТЬ',
                     style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5),
                   ),
                 )
               else if (claimed)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.textSecondary.withOpacity(0.1),
+                    color: AppColors.success.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: AppColors.success.withOpacity(0.2)),
                   ),
-                  child: const Icon(Icons.check_circle_rounded,
-                      color: AppColors.textSecondary, size: 20),
+                  child: const Icon(Icons.check_rounded,
+                      color: AppColors.success, size: 18),
                 ),
             ],
           ),
-          const Gap(14),
-          // Progress bar
+          const Gap(12),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: quest.percent,
-              minHeight: 6,
-              backgroundColor: AppColors.cellBorder.withOpacity(0.4),
+              minHeight: 5,
+              backgroundColor: AppColors.cellBorder.withOpacity(0.3),
               valueColor: AlwaysStoppedAnimation<Color>(
-                claimed ? AppColors.textSecondary : accentColor,
+                claimed ? AppColors.textSecondary.withOpacity(0.3) : accentColor,
               ),
             ),
           ),
-          const Gap(12),
-          // Rewards row
+          const Gap(10),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.bg.withOpacity(0.4),
+              color: AppColors.bg.withOpacity(0.5),
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.cellBorder.withOpacity(0.3)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.card_giftcard_rounded,
-                    color: AppColors.textSecondary, size: 14),
+                Icon(Icons.card_giftcard_rounded,
+                    color: AppColors.textSecondary.withOpacity(0.5), size: 13),
                 const Gap(6),
                 Text(
                   'Награда:',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: TextStyle(
+                    color: AppColors.textSecondary.withOpacity(0.6),
+                    fontSize: 12,
+                  ),
                 ),
                 const Gap(10),
                 _RewardChip('💎', quest.rewardDiamond, AppColors.diamond,
                     claimed),
-                const Gap(6),
-                _RewardChip(
-                    '🪨', quest.rewardIron, AppColors.iron, claimed),
-                const Gap(6),
-                _RewardChip(
-                    '⬛', quest.rewardCoal, AppColors.coal, claimed),
+                const Gap(8),
+                _RewardChip('🪨', quest.rewardIron, AppColors.iron, claimed),
+                const Gap(8),
+                _RewardChip('⬛', quest.rewardCoal, AppColors.coal, claimed),
               ],
             ),
           ),
@@ -294,9 +371,9 @@ class _RewardChip extends StatelessWidget {
         Text(
           '$amount',
           style: TextStyle(
-            color: dimmed ? AppColors.textSecondary : color,
+            color: dimmed ? AppColors.textSecondary.withOpacity(0.4) : color,
             fontSize: 13,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ],
