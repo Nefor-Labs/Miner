@@ -196,21 +196,13 @@ class _QuestCard extends StatelessWidget {
               : accentColor.withOpacity(done ? 0.45 : 0.3),
           width: done && !claimed ? 1.5 : 1,
         ),
-        boxShadow: done && !claimed
-            ? [
-                BoxShadow(
-                  color: accentColor.withOpacity(0.18),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                )
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.all(16),
       child: Column(

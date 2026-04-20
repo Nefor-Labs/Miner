@@ -89,8 +89,8 @@ class _CellWidgetState extends State<CellWidget> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF1A2040),
-                        Color(0xFF101525),
+                        AppColors.cellUnrevealedTop,
+                        AppColors.cellUnrevealedBot,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),

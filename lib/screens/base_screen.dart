@@ -169,16 +169,10 @@ class _PurchaseCard extends ConsumerWidget {
           width: canAfford ? 1.5 : 1,
         ),
         boxShadow: [
-          if (canAfford)
-            BoxShadow(
-              color: AppColors.diamond.withOpacity(0.18),
-              blurRadius: 24,
-              spreadRadius: 2,
-            ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -202,8 +196,9 @@ class _PurchaseCard extends ConsumerWidget {
                   color: AppColors.diamond.withOpacity(0.35)),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.diamond.withOpacity(0.2),
+                  color: Colors.black.withOpacity(0.08),
                   blurRadius: 20,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -313,9 +308,10 @@ class _BaseCard extends StatelessWidget {
               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.15),
-                  blurRadius: 16,
-                )
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 2),
+                ),
               ],
             ),
             child: const Icon(Icons.factory_rounded,
@@ -433,14 +429,13 @@ class _CollectCard extends ConsumerWidget {
           color: borderColor.withOpacity(hasPending ? 0.45 : 0.25),
           width: hasPending ? 1.5 : 1,
         ),
-        boxShadow: hasPending
-            ? [
-                BoxShadow(
-                  color: borderColor.withOpacity(0.15),
-                  blurRadius: 20,
-                )
-              ]
-            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -580,14 +575,13 @@ class _UpgradeCard extends ConsumerWidget {
               : AppColors.cellBorder,
           width: canAfford ? 1.5 : 1,
         ),
-        boxShadow: canAfford
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.12),
-                  blurRadius: 16,
-                )
-              ]
-            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -780,8 +774,8 @@ class _WorkerBubble extends StatelessWidget {
         border: Border.all(color: AppColors.iron.withOpacity(0.25)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 6,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
             offset: const Offset(0, 2),
           ),
         ],

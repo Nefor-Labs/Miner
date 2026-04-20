@@ -284,34 +284,19 @@ class _HeroCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            rankColor.withOpacity(0.14),
-            const Color(0xFF0E1020),
-            AppColors.primary.withOpacity(0.07),
-          ],
-          stops: const [0.0, 0.55, 1.0],
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: rankColor.withOpacity(0.4), width: 1.5),
+        border: Border.all(color: rankColor.withOpacity(0.35), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: rankColor.withOpacity(0.14),
-            blurRadius: 28,
-            spreadRadius: 1,
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Decorative background circles
           Positioned(
             top: -30,
             right: -30,
@@ -320,7 +305,7 @@ class _HeroCard extends StatelessWidget {
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: rankColor.withOpacity(0.08), width: 2),
+                border: Border.all(color: rankColor.withOpacity(0.06), width: 2),
               ),
             ),
           ),
@@ -332,7 +317,7 @@ class _HeroCard extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: rankColor.withOpacity(0.12), width: 1),
+                border: Border.all(color: rankColor.withOpacity(0.08), width: 1),
               ),
             ),
           ),
@@ -345,57 +330,39 @@ class _HeroCard extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: AppColors.primary.withOpacity(0.06), width: 2),
+                    color: AppColors.primary.withOpacity(0.04), width: 2),
               ),
             ),
           ),
 
-          // Content
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                // Avatar
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Outer glow ring
                     Container(
                       width: 92,
                       height: 92,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: rankColor.withOpacity(0.35), width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: rankColor.withOpacity(0.25),
-                            blurRadius: 20,
-                          ),
-                        ],
+                            color: rankColor.withOpacity(0.3), width: 2),
                       ),
                     ),
-                    // Avatar circle
                     Container(
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            rankColor.withOpacity(0.28),
-                            AppColors.accent,
-                          ],
-                        ),
+                        color: AppColors.accent,
                       ),
                       child: const Center(
                         child: Icon(Icons.hardware_rounded,
                             color: AppColors.iron, size: 40),
                       ),
                     ),
-                    // Level badge
                     Positioned(
                       bottom: 0,
                       right: 0,
@@ -406,12 +373,6 @@ class _HeroCard extends StatelessWidget {
                           gradient: AppColors.goldGradient,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppColors.bg, width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.gold.withOpacity(0.4),
-                              blurRadius: 8,
-                            ),
-                          ],
                         ),
                         child: Text(
                           'Ур.$level',
@@ -428,7 +389,6 @@ class _HeroCard extends StatelessWidget {
 
                 const Gap(14),
 
-                // Name + edit
                 if (editing) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -497,20 +457,13 @@ class _HeroCard extends StatelessWidget {
 
                 const Gap(8),
 
-                // Rank badge
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                   decoration: BoxDecoration(
                     color: rankColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: rankColor.withOpacity(0.4)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: rankColor.withOpacity(0.15),
-                        blurRadius: 10,
-                      ),
-                    ],
+                    border: Border.all(color: rankColor.withOpacity(0.35)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -533,7 +486,6 @@ class _HeroCard extends StatelessWidget {
 
                 const Gap(18),
 
-                // Progress bar to next rank
                 Column(
                   children: [
                     Row(
@@ -588,12 +540,6 @@ class _HeroCard extends StatelessWidget {
                                 colors: [rankColor, rankColor.withOpacity(0.5)],
                               ),
                               borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: rankColor.withOpacity(0.5),
-                                  blurRadius: 6,
-                                ),
-                              ],
                             ),
                           ),
                         ),
@@ -604,7 +550,6 @@ class _HeroCard extends StatelessWidget {
 
                 const Gap(18),
 
-                // Divider
                 Container(
                   height: 1,
                   decoration: BoxDecoration(
@@ -618,7 +563,6 @@ class _HeroCard extends StatelessWidget {
 
                 const Gap(16),
 
-                // Bottom quick stats
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -718,21 +662,14 @@ class _ResCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            _color.withOpacity(0.12),
-            _color.withOpacity(0.02),
-          ],
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _color.withOpacity(0.3)),
+        border: Border.all(color: _color.withOpacity(0.25)),
         boxShadow: [
           BoxShadow(
-            color: _color.withOpacity(0.1),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -787,18 +724,14 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.1), color.withOpacity(0.02)],
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -808,13 +741,9 @@ class _StatCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.22), color.withOpacity(0.06)],
-              ),
+              color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withOpacity(0.25)),
+              border: Border.all(color: color.withOpacity(0.2)),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
@@ -862,7 +791,6 @@ class _GearSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Pickaxe — full width with progress bar
         _PickaxeCard(
           level: player.pickaxeLevel as int,
           maxLevel: 15,
@@ -910,7 +838,7 @@ class _PickaxeCard extends StatelessWidget {
     final progress = level / maxLevel;
 
     final names = [
-      '', // 0 unused
+      '',
       'Деревянная', 'Железная', 'Золотая', 'Алмазная',
       'Мифическая', 'Рунная', 'Дух', 'Небесная',
       'Гром', 'Легендарная', 'Вечность', 'Хаос',
@@ -921,27 +849,19 @@ class _PickaxeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.12), color.withOpacity(0.02)],
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
             color: isMaxed
-                ? AppColors.gold.withOpacity(0.5)
-                : color.withOpacity(0.28)),
-        boxShadow: isMaxed
-            ? [
-                BoxShadow(
-                    color: AppColors.gold.withOpacity(0.18), blurRadius: 20)
-              ]
-            : [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4))
-              ],
+                ? AppColors.gold.withOpacity(0.4)
+                : color.withOpacity(0.22)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -949,13 +869,9 @@ class _PickaxeCard extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.25), color.withOpacity(0.06)],
-              ),
+              color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: color.withOpacity(0.35)),
+              border: Border.all(color: color.withOpacity(0.25)),
             ),
             child: Icon(Icons.hardware_rounded, color: color, size: 26),
           ),
@@ -981,7 +897,7 @@ class _PickaxeCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: color.withOpacity(isMaxed ? 0.2 : 0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: color.withOpacity(0.35)),
+                        border: Border.all(color: color.withOpacity(0.3)),
                       ),
                       child: Text(
                         isMaxed ? 'МАКС' : 'Ур.$level / $maxLevel',
@@ -1014,10 +930,6 @@ class _PickaxeCard extends StatelessWidget {
                             colors: [color, color.withOpacity(0.5)],
                           ),
                           borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                                color: color.withOpacity(0.5), blurRadius: 6)
-                          ],
                         ),
                       ),
                     ),
@@ -1057,25 +969,19 @@ class _GearCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            effectiveColor.withOpacity(0.12),
-            effectiveColor.withOpacity(0.02),
-          ],
-        ),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
             color: isMaxed
-                ? AppColors.gold.withOpacity(0.45)
-                : color.withOpacity(0.25)),
-        boxShadow: isMaxed
-            ? [
-                BoxShadow(
-                    color: AppColors.gold.withOpacity(0.14), blurRadius: 14)
-              ]
-            : null,
+                ? AppColors.gold.withOpacity(0.4)
+                : color.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -1083,16 +989,9 @@ class _GearCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  effectiveColor.withOpacity(0.22),
-                  effectiveColor.withOpacity(0.06),
-                ],
-              ),
+              color: effectiveColor.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: effectiveColor.withOpacity(0.3)),
+              border: Border.all(color: effectiveColor.withOpacity(0.25)),
             ),
             child: Icon(icon, color: effectiveColor, size: 20),
           ),

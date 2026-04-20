@@ -45,18 +45,7 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen>
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF07090F),
-            Color(0xFF0C1025),
-            Color(0xFF07090F),
-          ],
-          stops: [0.0, 0.5, 1.0],
-        ),
-      ),
+      decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Stack(
@@ -176,9 +165,9 @@ class _NicknameScreenState extends ConsumerState<NicknameScreen>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.15),
+                              color: Colors.black.withOpacity(0.08),
                               blurRadius: 20,
-                              spreadRadius: 1,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),

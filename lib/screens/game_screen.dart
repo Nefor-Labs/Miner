@@ -86,28 +86,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF151A30),
-                              Color(0xFF0D1020),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(28),
+                          gradient: AppColors.cardGradient,
+                          borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: AppColors.cellBorder.withOpacity(0.7),
+                            color: AppColors.cellBorder,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.5),
-                              blurRadius: 24,
-                              offset: const Offset(0, 8),
-                            ),
-                            BoxShadow(
-                              color: AppColors.diamond.withOpacity(0.04),
-                              blurRadius: 40,
-                              spreadRadius: 4,
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 20,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
@@ -170,18 +158,14 @@ class _RoundStatsBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF181C30), Color(0xFF0E1120)],
-          ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.cellBorder.withOpacity(0.5)),
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cellBorder),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -327,7 +311,11 @@ class _StatusBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withOpacity(0.4)),
         boxShadow: [
-          BoxShadow(color: color.withOpacity(0.2), blurRadius: 16),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(

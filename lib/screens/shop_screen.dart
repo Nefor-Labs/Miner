@@ -340,15 +340,10 @@ class _ExchangeCard extends ConsumerWidget {
           width: canAfford ? 1.5 : 1,
         ),
         boxShadow: [
-          if (canAfford)
-            BoxShadow(
-              color: fromColor.withOpacity(0.1),
-              blurRadius: 16,
-            ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -521,16 +516,10 @@ class _DailyCard extends StatelessWidget {
           width: claimed ? 1 : 1.5,
         ),
         boxShadow: [
-          if (!claimed)
-            BoxShadow(
-              color: AppColors.gold.withOpacity(0.2),
-              blurRadius: 28,
-              spreadRadius: 2,
-            ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -554,14 +543,7 @@ class _DailyCard extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: accent.withOpacity(0.4)),
-                    boxShadow: claimed
-                        ? null
-                        : [
-                            BoxShadow(
-                              color: AppColors.gold.withOpacity(0.3),
-                              blurRadius: 16,
-                            )
-                          ],
+                    boxShadow: null,
                   ),
                   child: Icon(
                     claimed
@@ -897,22 +879,10 @@ class _UpgradeCard extends ConsumerWidget {
           width: canAfford && !maxed ? 1.5 : 1,
         ),
         boxShadow: [
-          if (canAfford && !maxed)
-            BoxShadow(
-              color: color.withOpacity(0.14),
-              blurRadius: 20,
-              spreadRadius: 0,
-            ),
-          if (maxed)
-            BoxShadow(
-              color: AppColors.gold.withOpacity(0.14),
-              blurRadius: 20,
-              spreadRadius: 0,
-            ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
